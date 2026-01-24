@@ -1,0 +1,46 @@
+services:
+  flux-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flux-app
+    ports:
+      - "8000:8000"
+      - "5173:5173"
+    volumes:
+      - .:/app
+    environment:
+      - APP_ENV=local
+    depends_on:
+      - flux-db
+      - flux-redis
+    networks:
+      - flux-network
+    command: php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=8000 --admin-port=2021 --watch
+
+  flux-db:
+    image: postgres:18-alpine
+    container_name: flux-db
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=flux_db
+      - POSTGRES_USER=flux_user
+      - POSTGRES_PASSWORD=flux_pass
+    volumes:
+      - flux-db-data:/var/lib/postgresql/data
+    networks:
+      - flux-network
+
+  flux-redis:
+    image: redis:alpine
+    container_name: flux-redis
+    networks:
+      - flux-network
+
+networks:
+  flux-network:
+    driver: bridge
+
+volumes:
+  flux-db-data:
