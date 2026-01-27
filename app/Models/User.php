@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class Users extends Model
+class User extends Authenticatable
 {
     use HasUuids, Notifiable;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'first_name',
@@ -37,8 +39,15 @@ class Users extends Model
         ];
     }
 
+
+
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    public function accessRequest()
+    {
+        return $this->hasOne(AccessRequest::class);
     }
 }

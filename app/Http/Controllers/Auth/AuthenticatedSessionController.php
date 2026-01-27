@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
+use App\Actions\Auth\LoginUserAction;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -13,32 +14,26 @@ class AuthenticatedSessionController extends Controller
         return view('auth.login');
     }
 
-    public function store(request $request)
+    public function store(Request $request, LoginUserAction $action)
     {
         $input = $request->validate([
-            'login' => 'required|string',
+            'login'    => 'required|string',
             'password' => 'required|string',
         ]);
 
         $loginType = filter_var($input['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        if (Auth::attempt([$loginType => $input['login'], 'password' => $input['password']])) {
+        $success = $action->execute(
+            [$loginType => $input['login'], 'password' => $input['password']],
+            $request->boolean('remember')
+        );
 
-            $user = Auth::user();
-
-            if (!$user->is_active) {
-                Auth::logout();
-
-                return back()->withErrors([
-                    'login' => 'Akun Anda sedang persetujuan dari Administrator.',
-                ])->onlyInput('login');
-            }
-
+        if ($success) {
             $request->session()->regenerate();
-            $user->update(['last_login_at' => now()]);
+            return redirect()->intended(route('console.dashboard'));
         }
 
-        return back()->withErrors(['login' => 'Kredensial tidak valid']);
+        return back()->withErrors(['login' => 'Invalid credentials']);
     }
 
     public function destroy(Request $request)

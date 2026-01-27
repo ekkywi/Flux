@@ -1,14 +1,52 @@
-@import 'tailwindcss';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
+/* 1. Konfigurasi Theme */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Font */
+    --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    
+    /* Brand Colors */
+    --color-flux-dark: #020617;
+    --color-flux-primary: #6366f1;
+    --color-flux-accent: #818cf8;
+}
+
+/* 2. Content Sources (Vite/Laravel v4) */
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../storage/framework/views/*.php";
+@source "../**/*.blade.php";
+@source "../**/*.js";
+
+/* 3. Animasi Custom */
+@keyframes aurora {
+    from { background-position: 50% 50%, 50% 50%; }
+    to { background-position: 350% 50%, 350% 50%; }
+}
+
+/* 4. Custom Utilities */
+@utility bg-aurora {
+    background: 
+        radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+    background-size: 200% 200%;
+    animation: aurora 20s linear infinite;
+}
+
+@utility glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+}
+
+/* 5. Component Classes (Industrial Style) */
+@layer components {
+    .input-field {
+        @apply w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl 
+               focus:bg-white focus:border-flux-accent focus:ring-4 focus:ring-indigo-500/5 
+               transition-all outline-none text-sm font-medium;
+    }
+
+    .btn-primary {
+        @apply w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-sm 
+               hover:bg-slate-800 active:scale-[0.99] transition-all 
+               disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2;
+    }
 }

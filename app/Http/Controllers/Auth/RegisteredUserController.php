@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Actions\Auth\RegisterUserAction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Actions\Auth\RegisterUserAction;
+use Illuminate\Validation\Rules\Password;
 
 class RegisteredUserController extends Controller
 {
@@ -14,21 +14,21 @@ class RegisteredUserController extends Controller
         return view('auth.register');
     }
 
-    public function store(Request $request, RegisterUserAction $action)
+    public function store(Request $request, RegisterUserAction $registerAction)
     {
         $data = $request->validate([
-            'first_name' => 'required|string|max:50',
-            'last_name' => 'requireq|string|max:50',
-            'username' => 'required|string|unique:users,username',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8|confirmed',
-            'department' => 'required|string',
-            'role' => 'required|in: System Administratorm Quality Assurance, Developer',
+            'first_name'    => ['required', 'string', 'max:50'],
+            'last_name'     => ['required', 'string', 'max:50'],
+            'username'      => ['required', 'string', 'min:4', 'unique:users,username'],
+            'email'         => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password'      => ['required', 'confirmed', Password::defaults()],
+            'department'    => ['required', 'string', 'max:100'],
+            'role'          => ['required', 'in:Developer,Quality Assurance,System Administrator'],
+            'justification' => ['required', 'string', 'min:10', 'max:1000'],
         ]);
 
-        $user = $action->execute($data);
-        Auth::login($user);
+        $registerAction->execute($data);
 
-        return redirect('/dashboard');
+        return redirect()->route('login')->with('success', 'Request access submitted. Our administrator will review your justification shortly.');
     }
 }
