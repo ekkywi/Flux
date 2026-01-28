@@ -148,16 +148,39 @@
                                         </div>
 
                                         @if ($log->metadata)
-                                            <p class="text-[10px] text-slate-400 font-medium italic">
-                                                Target:
-                                                <span class="text-slate-600 font-bold">
-                                                    {{ $log->metadata["key_name"] ?? ($log->metadata["target_user"] ?? ($log->metadata["username"] ?? ($log->metadata["provisioned_email"] ?? "N/A"))) }}
+                                            <div class="flex flex-wrap gap-1.5 items-center mt-1 max-h-24 overflow-y-auto scrollbar-thin">
+                                                {{-- 1. Label Utama (Target) --}}
+                                                <span class="text-[10px] text-slate-700 font-bold uppercase">
+                                                    {{ $log->target_label }}
                                                 </span>
 
-                                                @if (isset($log->metadata["algorithm"]))
-                                                    <span class="text-[9px] text-slate-300 ml-1">[{{ $log->metadata["algorithm"] }}]</span>
+                                                <div class="h-3 w-px bg-slate-200 mx-1"></div>
+
+                                                {{-- 2. Tampilkan Perubahan Field (Jika ada) --}}
+                                                @if (count($log->modified_fields) > 0)
+                                                    @foreach ($log->modified_fields as $field => $change)
+                                                        <div class="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 border border-indigo-100 rounded text-[8px] font-mono">
+                                                            <span class="text-slate-400 uppercase">{{ str_replace("_", " ", $field) }}:</span>
+                                                            <span class="text-slate-500 line-through">{{ $change["from"] }}</span>
+                                                            <svg class="w-2 h-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path d="M13 7l5 5m0 0l-5 5m5-5H6" stroke-width="3" />
+                                                            </svg>
+                                                            {{-- PASTIKAN INI ADALAH $change['to'] --}}
+                                                            <span class="text-indigo-600 font-black">{{ $change["to"] }}</span>
+                                                        </div>
+                                                    @endforeach
                                                 @endif
-                                            </p>
+
+                                                {{-- 3. Info Metadata Lainnya (Selain before/after/target) --}}
+                                                @foreach ($log->metadata as $key => $value)
+                                                    @if (!in_array($key, ["before", "after", "server_name", "key_name", "target_user", "username", "provisioned_email"]))
+                                                        <div class="flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[8px] font-mono">
+                                                            <span class="text-slate-400 uppercase">{{ str_replace("_", " ", $key) }}:</span>
+                                                            <span class="text-slate-600 font-bold uppercase">{{ $value }}</span>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
                                         @endif
                                     </div>
                                 </td>

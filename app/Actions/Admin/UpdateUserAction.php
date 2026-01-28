@@ -8,29 +8,32 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateUserAction
 {
-    public function execute(User $user, array $data, $adminId): User
+    public function execute(User $user, array $data, $actorId)
     {
-        return DB::transaction(function () use ($user, $data, $adminId) {
-            $oldData = $user->only(['first_name', 'last-name', 'username', 'department', 'role', 'is_active']);
-
+        return DB::transaction(function () use ($user, $data, $actorId) {
+            $before = $user->getOriginal();
             $user->update($data);
+            $after = $user->getChanges();
 
-            AuditLog::create([
-                'user_id'           => $adminId,
-                'action'            => 'IDENTITY_UPDATED',
-                'category'          => 'IDENTITY',
-                'severity'          => 'info',
-                'target_type'       => 'User',
-                'target_id'         => $user->id,
-                'metadata'          => [
-                    'before'        => $oldData,
-                    'after'         => $user->only(['first_name', 'last_name', 'username', 'department', 'role', 'is_active']),
-                    'target_user'   => $user->email
-                ],
-                'ip_address'        => request()->ip(),
-                'user_agent'        => request()->userAgent(),
-            ]);
+            unset($after['updated_at']);
 
+            if (count($after) > 0) {
+                AuditLog::create([
+                    'user_id'     => $actorId,
+                    'action'      => 'IDENTITY_UPDATED',
+                    'category'    => 'Identity',
+                    'severity'    => 'info',
+                    'target_type' => 'User',
+                    'target_id'   => $user->id,
+                    'ip_address'  => request()->ip(),
+                    'user_agent'  => request()->userAgent(),
+                    'metadata'    => [
+                        'before'   => array_intersect_key($before, $after),
+                        'after'    => $after,
+                        'username' => $user->username
+                    ]
+                ]);
+            }
             return $user;
         });
     }

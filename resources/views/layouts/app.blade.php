@@ -85,7 +85,7 @@
 </head>
 
 <body class="h-full antialiased text-slate-900">
-    <div class="flex min-h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden">
 
         {{-- SIDEBAR --}}
         <aside class="w-72 bg-[#0f172a] text-white flex flex-col flex-shrink-0 border-r border-white/10">
@@ -146,6 +146,12 @@
                             <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-width="2" />
                         </svg>
                         <span>User Management</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all {{ request()->routeIs("admin.servers.*") ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/40" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.servers.index") }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" stroke-width="2" />
+                        </svg>
+                        <span>Server Inventory</span>
                     </a>
 
                     {{-- Security Settings Dropdown --}}

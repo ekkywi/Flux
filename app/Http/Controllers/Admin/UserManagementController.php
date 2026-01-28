@@ -9,6 +9,7 @@ use App\Actions\Admin\ProvisionUserAction;
 use App\Actions\Admin\RevokeUserAccessAction;
 use App\Actions\Admin\UpdateUserAction;
 use App\Actions\Admin\RestoreUserAction;
+use Illuminate\Support\Facades\Auth;
 
 class UserManagementController extends Controller
 {
@@ -32,7 +33,7 @@ class UserManagementController extends Controller
         ]);
 
         try {
-            $action->execute($validated, auth()->id());
+            $action->execute($validated, Auth::id());
 
             $fullName = $validated['first_name'] . ' ' . $validated['last_name'];
             return back()->with('success', "New identity provisioned: {$fullName}");
@@ -54,7 +55,8 @@ class UserManagementController extends Controller
         ]);
 
         try {
-            $action->execute($user, $validated, auth()->id());
+            $action->execute($user, $validated, Auth::id());
+
             return back()->with('success', "Identity updated for {$user->username}");
         } catch (\Exception $e) {
             return back()->with('error', "Update failed: " . $e->getMessage());
@@ -67,12 +69,12 @@ class UserManagementController extends Controller
         return view('admin.users.archived', compact('archivedUsers'));
     }
 
-    public function restore($id, \App\Actions\Admin\RestoreUserAction $action)
+    public function restore($id, RestoreUserAction $action)
     {
         try {
             $user = User::withTrashed()->findOrFail($id);
 
-            $action->execute($user->id, auth()->id());
+            $action->execute($user->id, Auth::id());
 
             return redirect()->route('admin.users.index')
                 ->with('success', "Access restored for {$user->username}. Personnel is back to operational status.");
@@ -84,7 +86,7 @@ class UserManagementController extends Controller
     public function destroy(User $user, RevokeUserAccessAction $action)
     {
         try {
-            $action->execute($user, auth()->id());
+            $action->execute($user, Auth::id());
             return back()->with('success', "Security clearance for {$user->username} has been revoked.");
         } catch (\Exception $e) {
             return back()->with('error', "Revocation failed: " . $e->getMessage());

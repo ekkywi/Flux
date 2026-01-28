@@ -30,6 +30,50 @@ class AuditLog extends Model
         'metadata' => 'array',
     ];
 
+    public function getTargetLabelAttribute()
+    {
+        if (!$this->metadata) return 'N/A';
+
+        return $this->metadata['key_name']
+            ?? $this->metadata['target_user']
+            ?? $this->metadata['username']
+            ?? $this->metadata['provisioned_email']
+            ?? $this->metadata['server_name']
+            ?? 'N/A';
+    }
+
+    public function getModifiedFieldsAttribute()
+    {
+        if (!isset($this->metadata['before']) || !isset($this->metadata['after'])) {
+            return [];
+        }
+
+        $before = collect($this->metadata['before']);
+        $after = collect($this->metadata['after']);
+
+        $ignoredFields = ['updated_at', 'created_at', 'password', 'remember_token'];
+
+        $changes = [];
+
+        foreach ($after as $key => $newValue) {
+            if (in_array($key, $ignoredFields)) continue;
+
+            $oldValue = $before->get($key);
+
+            $normalizedOld = ($oldValue === "" || $oldValue === null) ? null : $oldValue;
+            $normalizedNew = ($newValue === "" || $newValue === null) ? null : $newValue;
+
+            if ($normalizedOld != $normalizedNew) {
+                $changes[$key] = [
+                    'from' => $oldValue ?? 'NULL',
+                    'to'   => $newValue ?? 'NULL'
+                ];
+            }
+        }
+
+        return $changes;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserApprovalController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\Security\MasterKeyController;
+use App\Http\Controllers\Admin\ServerManagementController;
 
 // --- GUEST ONLY ---
 Route::middleware('guest')->group(function () {
@@ -62,6 +63,13 @@ Route::middleware('auth')->group(function () {
                 Route::get('/', [MasterKeyController::class, 'index'])->name('index');
                 Route::post('/rotate', [MasterKeyController::class, 'store'])->name('rotate');
             });
+        });
+
+        // 5. Infrastructure Inventory
+        Route::controller(ServerManagementController::class)->group(function () {
+            Route::get('/servers', 'index')->name('servers.index');
+            Route::post('/servers', 'store')->name('servers.store');
+            // ... delete, update nanti
         });
     });
 
