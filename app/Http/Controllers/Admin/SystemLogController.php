@@ -4,13 +4,19 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\AuditLog;
+use App\Actions\Admin\FetchAuditLogsAction;
 
 class SystemLogController extends Controller
 {
-    public function index()
+    public function index(Request $request, FetchAuditLogsAction $fetchLogs)
     {
-        $logs = AuditLog::with('user')->latest()->paginate(15);
+        $logs = $fetchLogs->execute($request->only([
+            'search',
+            'severity',
+            'year',
+            'month',
+            'day'
+        ]));
 
         return view('admin.logs.index', compact('logs'));
     }

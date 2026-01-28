@@ -20,26 +20,24 @@ class UserApprovalController extends Controller
         return view('admin.approvals.index', compact('pendingRequests'));
     }
 
-    public function approve(AccessRequest $accessRequest, ApproveAccessRequestAction $action)
+    public function approve(AccessRequest $approval, ApproveAccessRequestAction $action)
     {
         try {
-            $action->execute($accessRequest, auth()->id());
+            $action->execute($approval, auth()->id());
 
-            return back()->with('success', "Request for {$accessRequest->user->username} has been approved.");
+            return back()->with('success', "Request for {$approval->user->username} has been approved.");
         } catch (\Exception $e) {
             return back()->with('error', "Failed to approve: " . $e->getMessage());
         }
     }
 
-    public function reject(AccessRequest $accessRequest, Request $request, RejectAccessRequestAction $action)
+    public function reject(AccessRequest $approval, Request $request, RejectAccessRequestAction $action)
     {
-        $request->validate([
-            'reason' => 'required|string|min:5|max:255'
-        ]);
+        $request->validate(['reason' => 'required|string|min:5|max:255']);
 
         try {
-            $action->execute($accessRequest, $request->reason, auth()->id());
-            return back()->with('success', "Request for {$accessRequest->user->username} has been rejected.");
+            $action->execute($approval, $request->reason, auth()->id());
+            return back()->with('success', "Request for {$approval->user->username} has been rejected.");
         } catch (\Exception $e) {
             return back()->with('error', "Failed to reject: " . $e->getMessage());
         }

@@ -25,7 +25,7 @@ class ProvisionUserAction
 
             AuditLog::create([
                 'user_id' => $adminId,
-                'action' => 'identity.provisioned',
+                'action' => 'IDENTITY_PROVISIONED',
                 'category' => 'identity',
                 'severity' => 'critical',
                 'target_type' => User::class,

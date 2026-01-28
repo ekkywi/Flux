@@ -206,7 +206,6 @@
                     <div class="flex items-center">
                         <input class="w-4 h-4 text-indigo-600 rounded border-slate-300" id="remember" name="remember" type="checkbox">
                         <label class="ml-2 text-sm font-medium text-slate-600" for="remember">Remember session</label>
-                        <a class="text-[11px] font-bold text-indigo-600 hover:underline" href="#">Forgot?</a>
                     </div>
 
                     <button class="btn-primary" id="submitBtn" type="submit">

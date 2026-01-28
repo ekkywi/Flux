@@ -4,13 +4,11 @@
 @section("content")
     <div class="h-screen flex flex-col lg:flex-row overflow-hidden bg-white">
 
-        {{-- LEFT SIDE: Infrastructure Request Flow --}}
+        {{-- LEFT SIDE: Infrastructure Request Flow (Tetap Sama) --}}
         <div class="hidden lg:flex lg:w-[42%] bg-slate-950 p-12 flex-col justify-between border-r border-white/5 relative h-full">
-            {{-- Background Effects --}}
             <div class="absolute inset-0 bg-aurora opacity-30"></div>
             <div class="absolute inset-0 opacity-[0.02]" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 32px 32px;"></div>
 
-            {{-- 1. Brand Section --}}
             <div class="relative z-10 flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,40 +23,27 @@
                 </div>
             </div>
 
-            {{-- 2. Infographic Flow --}}
             <div class="relative z-10">
                 <h1 class="text-2xl font-bold text-white mb-10 tracking-tight">Access Pipeline</h1>
-
                 <div class="space-y-0">
-                    {{-- Step 1 --}}
                     <div class="flex gap-6 pb-8 relative">
                         <div class="absolute left-[17px] top-10 bottom-0 w-px border-l border-dashed border-indigo-500/30"></div>
-                        <div class="relative z-20 w-9 h-9 rounded-full bg-indigo-600 border-4 border-slate-950 flex items-center justify-center">
-                            <span class="text-[10px] font-bold text-white">01</span>
-                        </div>
+                        <div class="relative z-20 w-9 h-9 rounded-full bg-indigo-600 border-4 border-slate-950 flex items-center justify-center"><span class="text-[10px] font-bold text-white">01</span></div>
                         <div class="flex-1 pt-1">
                             <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Submission</h3>
                             <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Identity and justification are logged for audit.</p>
                         </div>
                     </div>
-
-                    {{-- Step 2 --}}
                     <div class="flex gap-6 pb-8 relative">
                         <div class="absolute left-[17px] top-10 bottom-0 w-px border-l border-dashed border-slate-800"></div>
-                        <div class="relative z-20 w-9 h-9 rounded-full bg-slate-900 border-4 border-slate-950 flex items-center justify-center">
-                            <span class="text-[10px] font-bold text-slate-500">02</span>
-                        </div>
+                        <div class="relative z-20 w-9 h-9 rounded-full bg-slate-900 border-4 border-slate-950 flex items-center justify-center"><span class="text-[10px] font-bold text-slate-500">02</span></div>
                         <div class="flex-1 pt-1">
                             <h3 class="text-xs font-bold text-slate-300 uppercase tracking-widest">Verification</h3>
                             <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Administrator validates access requirements.</p>
                         </div>
                     </div>
-
-                    {{-- Step 3 --}}
                     <div class="flex gap-6">
-                        <div class="relative z-20 w-9 h-9 rounded-full bg-slate-900 border-4 border-slate-950 flex items-center justify-center">
-                            <span class="text-[10px] font-bold text-slate-500">03</span>
-                        </div>
+                        <div class="relative z-20 w-9 h-9 rounded-full bg-slate-900 border-4 border-slate-950 flex items-center justify-center"><span class="text-[10px] font-bold text-slate-500">03</span></div>
                         <div class="flex-1 pt-1">
                             <h3 class="text-xs font-bold text-slate-300 uppercase tracking-widest">Provisioning</h3>
                             <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Console nodes activated and credentials granted.</p>
@@ -67,18 +52,13 @@
                 </div>
             </div>
 
-            {{-- 3. Bottom Info --}}
             <div class="relative z-10 pt-6 border-t border-white/5">
-                <p class="text-[10px] font-mono text-slate-600 uppercase tracking-widest">
-                    Infrastructure Unit // 2026
-                </p>
+                <p class="text-[10px] font-mono text-slate-600 uppercase tracking-widest">Infrastructure Unit // 2026</p>
             </div>
         </div>
 
         {{-- RIGHT SIDE: Form Section --}}
         <div class="flex-1 flex flex-col justify-center px-8 lg:px-24 bg-white h-full relative">
-
-            {{-- Mobile Logo --}}
             <div class="lg:hidden absolute top-8 left-8 flex items-center gap-2">
                 <div class="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,18 +100,32 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
+                        {{-- 1. PERBAIKAN: Input Department diganti menjadi Select --}}
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Department</label>
-                            <input class="input-field @error("department") border-rose-500 bg-rose-50/50 @enderror" name="department" placeholder="IT Infrastructure" required type="text" value="{{ old("department") }}">
+                            <div class="relative">
+                                <select class="input-field appearance-none cursor-pointer pr-10 @error("department") border-rose-500 bg-rose-50/50 @enderror" name="department" required>
+                                    <option disabled selected value="">Select Dept</option>
+                                    @foreach (["INC", "ITC", "ITS", "MIS"] as $dept)
+                                        <option {{ old("department") == $dept ? "selected" : "" }} value="{{ $dept }}">{{ $dept }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Role</label>
                             <div class="relative">
-                                <select class="input-field appearance-none cursor-pointer pr-10" name="role" required>
+                                <select class="input-field appearance-none cursor-pointer pr-10 @error("role") border-rose-500 bg-rose-50/50 @enderror" name="role" required>
                                     <option disabled selected value="">Select Role</option>
-                                    <option value="Developer">Developer</option>
-                                    <option value="Quality Assurance">Quality Assurance</option>
-                                    <option value="System Administrator">System Administrator</option>
+                                    <option {{ old("role") == "Developer" ? "selected" : "" }} value="Developer">Developer</option>
+                                    <option {{ old("role") == "Quality Assurance" ? "selected" : "" }} value="Quality Assurance">Quality Assurance</option>
+                                    <option {{ old("role") == "System Administrator" ? "selected" : "" }} value="System Administrator">System Administrator</option>
                                 </select>
                                 <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

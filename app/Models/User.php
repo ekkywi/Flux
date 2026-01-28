@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasUuids, Notifiable;
+    use HasUuids, Notifiable, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -39,7 +40,7 @@ class User extends Authenticatable
         ];
     }
 
-
+    protected $dates = ['deleted_at'];
 
     public function getFullNameAttribute(): string
     {

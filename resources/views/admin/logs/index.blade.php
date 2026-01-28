@@ -35,6 +35,72 @@
             </div>
         </div>
 
+        {{-- 1.5 SEARCH & FILTER BAR --}}
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm mb-6">
+            <form action="{{ route("admin.logs.index") }}" class="space-y-4" method="GET">
+                <div class="flex flex-col lg:flex-row gap-4">
+                    {{-- Search Input (Flex 1) --}}
+                    <div class="flex-1 relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
+                            </svg>
+                        </div>
+                        <input class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl text-xs font-medium focus:ring-indigo-500 focus:border-indigo-500 transition-all" name="search" placeholder="Search actor, action, or metadata..." type="text" value="{{ request("search") }}">
+                    </div>
+
+                    {{-- Time & Severity Group --}}
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:flex gap-2">
+                        {{-- Year --}}
+                        <select class="px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl text-[10px] font-black uppercase text-slate-700 focus:ring-indigo-500 appearance-none cursor-pointer min-w-[100px]" name="year">
+                            <option value="">Year</option>
+                            @for ($y = date("Y"); $y >= 2024; $y--)
+                                <option {{ request("year") == $y ? "selected" : "" }} value="{{ $y }}">{{ $y }}</option>
+                            @endfor
+                        </select>
+
+                        {{-- Month --}}
+                        <select class="px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl text-[10px] font-black uppercase text-slate-700 focus:ring-indigo-500 appearance-none cursor-pointer min-w-[100px]" name="month">
+                            <option value="">Month</option>
+                            @foreach (range(1, 12) as $m)
+                                <option {{ request("month") == $m ? "selected" : "" }} value="{{ $m }}">
+                                    {{ date("F", mktime(0, 0, 0, $m, 1)) }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        {{-- Day --}}
+                        <select class="px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl text-[10px] font-black uppercase text-slate-700 focus:ring-indigo-500 appearance-none cursor-pointer min-w-[80px]" name="day">
+                            <option value="">Day</option>
+                            @foreach (range(1, 31) as $d)
+                                <option {{ request("day") == $d ? "selected" : "" }} value="{{ $d }}">{{ sprintf("%02d", $d) }}</option>
+                            @endforeach
+                        </select>
+
+                        {{-- Severity --}}
+                        <select class="px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl text-[10px] font-black uppercase text-rose-600 focus:ring-indigo-500 appearance-none cursor-pointer min-w-[120px]" name="severity">
+                            <option value="">Severity</option>
+                            <option {{ request("severity") == "critical" ? "selected" : "" }} value="critical">CRITICAL</option>
+                            <option {{ request("severity") == "warning" ? "selected" : "" }} value="warning">WARNING</option>
+                            <option {{ request("severity") == "info" ? "selected" : "" }} value="info">INFO</option>
+                        </select>
+                    </div>
+
+                    {{-- Buttons --}}
+                    <div class="flex gap-2">
+                        <button class="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200" type="submit">
+                            Apply
+                        </button>
+                        @if (request()->anyFilled(["search", "severity", "year", "month", "day"]))
+                            <a class="px-4 py-2.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all flex items-center justify-center" href="{{ route("admin.logs.index") }}">
+                                Reset
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </form>
+        </div>
+
         {{-- 2. AUDIT LOG TABLE --}}
         <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div class="overflow-x-auto">
@@ -82,7 +148,7 @@
                                         </div>
                                         @if ($log->metadata)
                                             <p class="text-[10px] text-slate-400 font-medium italic">
-                                                Target: {{ $log->metadata["username"] ?? ($log->metadata["provisioned_email"] ?? "N/A") }}
+                                                Target: {{ $log->metadata["target_user"] ?? ($log->metadata["username"] ?? ($log->metadata["provisioned_email"] ?? "N/A")) }}
                                             </p>
                                         @endif
                                     </div>

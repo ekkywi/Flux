@@ -29,8 +29,12 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(['auth', 'role:System Administrator'])->prefix('admin')->name('admin.')->group(function () {
 
-        // 1. Access Pipeline (Existing)
-        Route::get('/approvals', [UserApprovalController::class, 'index'])->name('approvals.index');
+        // 1. Access Pipeline (Fixed)
+        Route::prefix('approvals')->name('approvals.')->group(function () {
+            Route::get('/', [UserApprovalController::class, 'index'])->name('index');
+            Route::post('/{approval}/approve', [UserApprovalController::class, 'approve'])->name('approve');
+            Route::post('/{approval}/reject', [UserApprovalController::class, 'reject'])->name('reject');
+        });
 
         // 2. Identity Management (User Directory)
         Route::controller(UserManagementController::class)->group(function () {
@@ -41,6 +45,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/users/{user}/edit', 'edit')->name('users.edit');
             Route::patch('/users/{user}', 'update')->name('users.update');
             Route::delete('/users/{user}', 'destroy')->name('users.destroy');
+            Route::get('/users/archived', [UserManagementController::class, 'archived'])->name('users.archived');
+            Route::patch('/users/{id}/restore', [UserManagementController::class, 'restore'])->name('users.restore');
         });
 
         // 3. System Protocol (Audit & Activity Logs)
