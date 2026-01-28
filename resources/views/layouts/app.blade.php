@@ -140,13 +140,42 @@
                         @endif
                     </a>
 
-                    {{-- Menu User Management (NEW) --}}
+                    {{-- Menu User Management --}}
                     <a class="flex items-center gap-3 px-4 py-3 mt-2 rounded-xl text-sm font-medium transition-all {{ request()->routeIs("admin.users.*") ? "bg-indigo-600/10 text-indigo-400" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.users.index") }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-width="2" />
                         </svg>
                         <span>User Management</span>
                     </a>
+
+                    {{-- Security Settings Dropdown --}}
+                    <div class="space-y-1" id="securityMenuWrapper">
+                        <button class="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all {{ request()->routeIs("admin.security.*") ? "bg-white/5 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" onclick="toggleSecurityMenu()">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                </svg>
+                                <span>Security Settings</span>
+                            </div>
+                            <svg class="w-4 h-4 transition-transform {{ request()->routeIs("admin.security.*") ? "rotate-180" : "" }}" fill="none" id="securityArrow" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
+                            </svg>
+                        </button>
+
+                        {{-- Dropdown Content --}}
+                        <div class="{{ request()->routeIs("admin.security.*") ? "" : "hidden" }} pl-11 space-y-1 overflow-hidden transition-all" id="securityDropdown">
+                            <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs("admin.security.master-key.*") ? "text-indigo-400" : "text-slate-500 hover:text-white" }}" href="{{ route("admin.security.master-key.index") }}">
+                                <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs("admin.security.master-key.*") ? "bg-indigo-500" : "bg-slate-700" }}"></div>
+                                Master SSH Key
+                            </a>
+
+                            {{-- Nanti bisa tambah menu lain di sini, misal: API Keys --}}
+                            {{-- <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-white">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
+            Audit Logs
+        </a> --}}
+                        </div>
+                    </div>
 
                     {{-- System Logs (Audit Trail) --}}
                     <a class="flex items-center gap-3 px-4 py-3 mt-2 rounded-xl text-sm font-medium transition-all {{ request()->routeIs("admin.logs.*") ? "bg-indigo-600/10 text-indigo-400 font-bold" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.logs.index") }}">
@@ -313,6 +342,14 @@
             if (!event.target.closest('#notificationDropdownWrapper')) {
                 notificationDropdown.classList.add('hidden');
             }
+        }
+
+        function toggleSecurityMenu() {
+            const dropdown = document.getElementById('securityDropdown');
+            const arrow = document.getElementById('securityArrow');
+
+            dropdown.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
         }
     </script>
     <script>

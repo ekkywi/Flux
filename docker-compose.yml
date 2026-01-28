@@ -11,6 +11,7 @@ services:
       - .:/app
     environment:
       - APP_ENV=local
+      - XDG_CONFIG_HOME=/tmp
     depends_on:
       - flux-db
       - flux-redis

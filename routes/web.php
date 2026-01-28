@@ -7,6 +7,7 @@ use App\Http\Controllers\Console\DashboardController;
 use App\Http\Controllers\Admin\UserApprovalController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\SystemLogController;
+use App\Http\Controllers\Security\MasterKeyController;
 
 // --- GUEST ONLY ---
 Route::middleware('guest')->group(function () {
@@ -39,7 +40,7 @@ Route::middleware('auth')->group(function () {
         // 2. Identity Management (User Directory)
         Route::controller(UserManagementController::class)->group(function () {
             Route::get('/users', 'index')->name('users.index');
-            Route::post('/users', 'store')->name('users.store'); // Jalur untuk Provisioning
+            Route::post('/users', 'store')->name('users.store'); // Jalur untuk Provisioning (tolong di eling eling bos)
 
             // Cadangan untuk fitur edit/delete nanti
             Route::get('/users/{user}/edit', 'edit')->name('users.edit');
@@ -51,10 +52,21 @@ Route::middleware('auth')->group(function () {
 
         // 3. System Protocol (Audit & Activity Logs)
         Route::get('/logs', [SystemLogController::class, 'index'])->name('logs.index');
-    });
-});
 
-// Redirect root ke login atau dashboard
-Route::get('/', function () {
-    return Auth::check() ? redirect()->route('console.dashboard') : redirect()->route('login');
+
+        // 4. Security Settings
+        Route::prefix('security')->name('security.')->group(function () {
+
+            // Master Key Management
+            Route::prefix('master-key')->name('master-key.')->group(function () {
+                Route::get('/', [MasterKeyController::class, 'index'])->name('index');
+                Route::post('/rotate', [MasterKeyController::class, 'store'])->name('rotate');
+            });
+        });
+    });
+
+    // Redirect root ke login atau dashboard
+    Route::get('/', function () {
+        return Auth::check() ? redirect()->route('console.dashboard') : redirect()->route('login');
+    });
 });

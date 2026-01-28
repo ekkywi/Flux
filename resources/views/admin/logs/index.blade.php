@@ -146,9 +146,17 @@
                                             <span class="text-[9px] text-slate-300">•</span>
                                             <span class="text-[9px] font-bold text-slate-500 uppercase">{{ $log->category }}</span>
                                         </div>
+
                                         @if ($log->metadata)
                                             <p class="text-[10px] text-slate-400 font-medium italic">
-                                                Target: {{ $log->metadata["target_user"] ?? ($log->metadata["username"] ?? ($log->metadata["provisioned_email"] ?? "N/A")) }}
+                                                Target:
+                                                <span class="text-slate-600 font-bold">
+                                                    {{ $log->metadata["key_name"] ?? ($log->metadata["target_user"] ?? ($log->metadata["username"] ?? ($log->metadata["provisioned_email"] ?? "N/A"))) }}
+                                                </span>
+
+                                                @if (isset($log->metadata["algorithm"]))
+                                                    <span class="text-[9px] text-slate-300 ml-1">[{{ $log->metadata["algorithm"] }}]</span>
+                                                @endif
                                             </p>
                                         @endif
                                     </div>
