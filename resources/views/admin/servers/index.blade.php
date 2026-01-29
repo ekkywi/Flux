@@ -96,9 +96,19 @@
 
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button class="p-2 text-slate-400 hover:text-emerald-500 transition-colors rounded-lg hover:bg-emerald-50 btn-test-link" data-id="{{ $server->id }}" title="Check Connectivity">
+                                            <svg class="w-4 h-4" fill="none" id="icon-{{ $server->id }}" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
+                                            </svg>
+                                        </button>
                                         <button class="p-2 text-slate-400 hover:text-indigo-600 transition-colors rounded-lg hover:bg-indigo-50" title="SSH Terminal">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" />
+                                            </svg>
+                                        </button>
+                                        <button class="p-2 text-slate-400 hover:text-indigo-600 transition-colors" onclick="openDeployModal('{{ $server->id }}', '{{ $server->name }}')" title="Deploy Master Key">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                                             </svg>
                                         </button>
                                         <button class="p-2 text-slate-400 hover:text-rose-600 transition-colors rounded-lg hover:bg-rose-50" title="Decommission">
@@ -180,14 +190,152 @@
             </form>
         </div>
     </div>
+
+    <div class="fixed inset-0 z-50 hidden overflow-y-auto" id="deployKeyModal">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-200">
+                <div class="mb-6">
+                    <h3 class="text-xl font-black text-slate-900 tracking-tight">Deploy Master Key</h3>
+                    <p class="text-xs text-slate-500 mt-1 font-medium">Flux will push the public key to <span class="text-indigo-600 font-bold" id="targetServerName"></span> via temporary SSH access.</p>
+                </div>
+
+                <form id="deployKeyForm">
+                    @csrf
+                    <input id="deployServerId" type="hidden">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">SSH Password</label>
+                            <input class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none" id="ssh_password" placeholder="Target's root/user password" required type="password">
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button class="flex-1 px-6 py-3 border border-slate-200 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all" onclick="closeDeployModal()" type="button">
+                                Cancel
+                            </button>
+                            <button class="flex-1 px-6 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all" id="btnSubmitDeploy" type="submit">
+                                Authorize & Push
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push("scripts")
     <script>
+        // 1. Modal Management
         function toggleProvisionModal() {
             const modal = document.getElementById('provisionModal');
             modal.classList.toggle('hidden');
             modal.classList.toggle('flex');
         }
+
+        const deployModal = document.getElementById('deployKeyModal');
+        const deployForm = document.getElementById('deployKeyForm');
+
+        function openDeployModal(id, name) {
+            document.getElementById('deployServerId').value = id;
+            document.getElementById('targetServerName').textContent = name;
+            deployModal.classList.remove('hidden');
+        }
+
+        function closeDeployModal() {
+            deployModal.classList.add('hidden');
+            deployForm.reset();
+        }
+
+        // 2. Connectivity & Health Test
+        document.querySelectorAll('.btn-test-link').forEach(button => {
+            button.addEventListener('click', async function() {
+                const serverId = this.getAttribute('data-id');
+                const icon = document.getElementById('icon-' + serverId);
+
+                icon.classList.add('animate-spin', 'text-indigo-600');
+
+                try {
+                    const response = await fetch(`/admin/servers/${serverId}/test-link`);
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        // Tampilan sukses dengan info RAM/CPU (Detail)
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Node Accessible',
+                            html: `
+                            <div class="mt-2 py-2 border-t border-slate-100 text-left">
+                                <code class="text-[10px] text-emerald-600 font-mono font-bold block bg-emerald-50 rounded p-2">
+                                    ${data.detail}
+                                </code>
+                            </div>
+                        `
+                        });
+                    } else {
+                        Toast.fire({
+                            icon: 'error',
+                            title: 'Connection Failed',
+                            html: `<span class="text-[10px] text-slate-500">${data.message}</span>`
+                        });
+                    }
+                } catch (error) {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Network Error'
+                    });
+                } finally {
+                    icon.classList.remove('animate-spin', 'text-indigo-600');
+                }
+            });
+        });
+
+        // 3. Key Deployment Logic
+        deployForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('deployServerId').value;
+            const password = document.getElementById('ssh_password').value;
+            const btn = document.getElementById('btnSubmitDeploy');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="animate-pulse text-[10px]">Deploying...</span>';
+
+            try {
+                const response = await fetch(`/admin/servers/${id}/deploy-key`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        ssh_password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Toast.fire({
+                        icon: 'success',
+                        title: data.message
+                    });
+                    closeDeployModal();
+                } else {
+                    Toast.fire({
+                        icon: 'error',
+                        title: data.message || 'Deployment failed'
+                    });
+                }
+            } catch (error) {
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Network Error'
+                });
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Authorize & Push';
+            }
+        });
     </script>
 @endpush

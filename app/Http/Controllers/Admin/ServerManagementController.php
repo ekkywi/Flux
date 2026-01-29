@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Server;
 use Illuminate\Http\Request;
 use App\Services\Infrastructure\ServerService;
+use App\Services\Infrastructure\SshConnectivityService;
+use App\Services\Infrastructure\SshKeyDistributorService;
 
 class ServerManagementController extends Controller
 {
@@ -38,5 +41,29 @@ class ServerManagementController extends Controller
         ]);
 
         return back()->with('success', 'Infrastructure Entity successfully provisioned to the core.');
+    }
+
+    public function testLink(Server $server, SshConnectivityService $sshService)
+    {
+        $result = $sshService->verifyNode($server);
+
+        usleep(500000);
+
+        return response()->json($result);
+    }
+
+    public function deployKey(Request $request, Server $server, SshKeyDistributorService $distributor)
+    {
+        $request->validate([
+            'ssh_password' => 'required|string'
+        ]);
+
+        $result = $distributor->deploy($server, $request->ssh_password);
+
+        if ($result['status'] === 'success') {
+            return response()->json($result);
+        }
+
+        return response()->json($result, 422);
     }
 }

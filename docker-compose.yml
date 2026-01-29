@@ -9,6 +9,8 @@ services:
       - "5173:5173"
     volumes:
       - .:/app
+      - /app/vendor
+      - /app/node_modules
     environment:
       - APP_ENV=local
       - XDG_CONFIG_HOME=/tmp
