@@ -39,8 +39,8 @@ class ApproveAccessRequestAction
             ]);
 
             AuditLogger::log(new AuditLogData(
-                action: 'ACCESS_AUTHORIZED',
-                category: 'SECURITY',
+                action: 'access_authorized',
+                category: 'security',
                 user_id: $adminId,
                 severity: AuditSeverity::CRITICAL,
                 target_type: $request::class,

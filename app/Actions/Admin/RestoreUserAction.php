@@ -3,7 +3,9 @@
 namespace App\Actions\Admin;
 
 use App\Models\User;
-use App\Models\AuditLog;
+use App\Enums\AuditSeverity;
+use App\Services\Core\AuditLogger;
+use App\DTOs\AuditLogData;
 use Illuminate\Support\Facades\DB;
 
 class RestoreUserAction
@@ -15,20 +17,19 @@ class RestoreUserAction
 
             $user->restore();
 
-            AuditLog::create([
-                'user_id'     => $adminId,
-                'action'      => 'ACCESS_RESTORED',
-                'category'    => 'SECURITY',
-                'severity'    => 'warning',
-                'target_type' => 'User',
-                'target_id'   => $user->id,
-                'metadata'    => [
-                    'target_user' => $user->email,
-                    'restored_at'   => now()->toDateTimeString(),
-                ],
-                'ip_address'  => request()->ip(),
-                'user_agent'  => request()->userAgent(),
-            ]);
+            AuditLogger::log(new AuditLogData(
+                action: 'ACCESS_RESTORED',
+                category: 'SECURITY',
+                severity: AuditSeverity::WARNING,
+                user_id: $adminId,
+                target_type: $user::class,
+                target_id: $user->id,
+                metadata: [
+                    'target_user_email' => $user->email,
+                    'restored_at'       => now()->toDateTimeString(),
+                    'previous_status'   => 'soft_deleted'
+                ]
+            ));
         });
     }
 }

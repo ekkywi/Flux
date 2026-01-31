@@ -3,7 +3,9 @@
 namespace App\Actions\Admin;
 
 use App\Models\User;
-use App\Models\AuditLog;
+use App\Enums\AuditSeverity;
+use App\Services\Core\AuditLogger;
+use App\DTOs\AuditLogData;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -14,30 +16,28 @@ class ProvisionUserAction
         return DB::transaction(function () use ($data, $adminId) {
             $user = User::create([
                 'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
+                'last_name'  => $data['last_name'],
                 'username'   => $data['username'],
-                'email' => $data['email'],
+                'email'      => $data['email'],
                 'department' => $data['department'],
-                'password' => Hash::make($data['temporary_password']),
-                'role' => $data['role'],
-                'is_active' => true,
+                'password'   => Hash::make($data['temporary_password']),
+                'role'       => $data['role'],
+                'is_active'  => true,
             ]);
 
-            AuditLog::create([
-                'user_id' => $adminId,
-                'action' => 'IDENTITY_PROVISIONED',
-                'category' => 'identity',
-                'severity' => 'critical',
-                'target_type' => User::class,
-                'target_id' => $user->id,
-                'metadata' => [
-                    'provisioned_email' => $user->email,
-                    'assigned_role' => $user->role,
-                    'note' => 'Manual provisioning by Administrator'
-                ],
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ]);
+            AuditLogger::log(new AuditLogData(
+                action: 'identity_provisioned',
+                category: 'identity',
+                severity: AuditSeverity::CRITICAL,
+                user_id: $adminId,
+                target_type: $user::class,
+                target_id: $user->id,
+                metadata: [
+                    'target_user_email' => $user->email,
+                    'assigned_role'     => $user->role,
+                    'note'              => 'Manual provisioning by Administrator',
+                ]
+            ));
 
             return $user;
         });

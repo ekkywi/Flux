@@ -133,7 +133,9 @@
                                         </div>
                                         <div class="min-w-0">
                                             <p class="text-xs font-bold text-slate-900 truncate">{{ $log->user->first_name ?? "System" }}</p>
-                                            <p class="text-[9px] font-mono text-slate-400 uppercase">IP: {{ $log->ip_address }}</p>
+                                            <p class="text-[9px] font-mono text-slate-400 uppercase tracking-tight">
+                                                {{ $log->user->role ?? "Automated Process" }}
+                                            </p>
                                         </div>
                                     </div>
                                 </td>
@@ -141,19 +143,50 @@
                                 {{-- Event / Action --}}
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col gap-1">
+                                        {{-- Header: Action & Category --}}
                                         <div class="flex items-center gap-2">
                                             <span class="text-[10px] font-black text-indigo-600 uppercase tracking-wider">{{ $log->action }}</span>
                                             <span class="text-[9px] text-slate-300">•</span>
                                             <span class="text-[9px] font-bold text-slate-500 uppercase">{{ $log->category }}</span>
                                         </div>
 
-                                        {{-- Tampilan Metadata Otomatis --}}
-                                        <div class="flex flex-wrap gap-1 mt-1">
-                                            @foreach (collect($log->metadata)->except(["before", "after"]) as $key => $val)
-                                                <span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[8px] font-mono rounded border border-slate-200 uppercase">
-                                                    {{ str_replace("_", " ", $key) }}: <span class="font-bold">{{ is_array($val) ? "JSON" : $val }}</span>
+                                        {{-- Metadata Area --}}
+                                        <div class="flex flex-wrap gap-1.5 items-center mt-1">
+
+                                            {{-- 1. IDENTITAS TARGET (Snapshot) --}}
+                                            @if (isset($log->metadata["target_user_email"]))
+                                                <span class="px-1.5 py-0.5 bg-slate-900 text-white text-[8px] font-bold rounded uppercase shadow-sm">
+                                                    Target: {{ $log->metadata["target_user_email"] }}
                                                 </span>
+                                            @endif
+
+                                            {{-- 2. LOGIKA PERUBAHAN DATA (Diff View untuk Update) --}}
+                                            @if (isset($log->metadata["before"]) && isset($log->metadata["after"]))
+                                                @foreach ($log->metadata["after"] as $field => $newValue)
+                                                    <div class="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 border border-indigo-100 rounded text-[8px] font-mono shadow-sm">
+                                                        <span class="text-slate-400 uppercase">{{ str_replace("_", " ", $field) }}:</span>
+                                                        <span class="text-slate-400 line-through decoration-slate-300">{{ $log->metadata["before"][$field] ?? "NULL" }}</span>
+                                                        <svg class="w-2.5 h-2.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M13 7l5 5m0 0l-5 5m5-5H6" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" />
+                                                        </svg>
+                                                        <span class="text-indigo-600 font-black">{{ is_array($newValue) ? "JSON" : $newValue }}</span>
+                                                    </div>
+                                                @endforeach
+                                            @endif
+
+                                            {{-- 3. INFORMASI UMUM (Info lain yang bukan before/after/target) --}}
+                                            @php
+                                                $excludeKeys = ["before", "after", "target_user_email", "target_user_name", "username"];
+                                                $generalInfo = collect($log->metadata)->except($excludeKeys);
+                                            @endphp
+
+                                            @foreach ($generalInfo as $key => $val)
+                                                <div class="flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[8px] font-mono text-slate-600 shadow-sm">
+                                                    <span class="text-slate-400 uppercase font-medium">{{ str_replace("_", " ", $key) }}:</span>
+                                                    <span class="font-bold uppercase">{{ is_array($val) ? "Object" : $val }}</span>
+                                                </div>
                                             @endforeach
+
                                         </div>
                                     </div>
                                 </td>
@@ -174,11 +207,29 @@
                                     </span>
                                 </td>
 
-                                {{-- Trace ID --}}
+                                {{-- Trace (Technical Fingerprint) --}}
                                 <td class="px-6 py-4 text-right">
-                                    <span class="text-[9px] font-mono text-slate-300">
-                                        #{{ substr($log->id, 0, 8) }}
-                                    </span>
+                                    <div class="flex flex-col items-end gap-1.5">
+                                        {{-- 1. IP Address --}}
+                                        <span class="text-[10px] font-mono font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                                            {{ $log->ip_address ?? "0.0.0.0" }}
+                                        </span>
+
+                                        {{-- 2. Correlation ID (Jika ada) --}}
+                                        @if ($log->correlation_id)
+                                            <div class="flex items-center gap-1 text-[8px] font-mono text-indigo-400 uppercase tracking-tighter" title="Correlation ID: {{ $log->correlation_id }}">
+                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                                </svg>
+                                                <span>{{ substr($log->correlation_id, 0, 8) }}...</span>
+                                            </div>
+                                        @endif
+
+                                        {{-- 3. Device/User Agent --}}
+                                        <span class="text-[8px] text-slate-300 truncate max-w-[120px] font-medium" title="{{ $log->user_agent }}">
+                                            {{ Str::limit($log->user_agent, 20) }}
+                                        </span>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
