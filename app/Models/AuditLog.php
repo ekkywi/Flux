@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
+use App\Enums\AuditSeverity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Prunable;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AuditLog extends Model
 {
-    use HasFactory, HasUuids;
-
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids, Prunable;
 
     protected $fillable = [
         'user_id',
@@ -22,60 +23,42 @@ class AuditLog extends Model
         'target_type',
         'target_id',
         'metadata',
+        'correlation_id',
         'ip_address',
         'user_agent'
     ];
 
-    protected $casts = [
-        'metadata' => 'array',
-    ];
-
-    public function getTargetLabelAttribute()
+    protected function casts(): array
     {
-        if (!$this->metadata) return 'N/A';
-
-        return $this->metadata['key_name']
-            ?? $this->metadata['target_user']
-            ?? $this->metadata['username']
-            ?? $this->metadata['provisioned_email']
-            ?? $this->metadata['server_name']
-            ?? 'N/A';
+        return [
+            'severity' => AuditSeverity::class,
+            'metadata' => AsArrayObject::class,
+        ];
     }
 
-    public function getModifiedFieldsAttribute()
+    protected function changes(): Attribute
     {
-        if (!isset($this->metadata['before']) || !isset($this->metadata['after'])) {
-            return [];
-        }
-
-        $before = collect($this->metadata['before']);
-        $after = collect($this->metadata['after']);
-
-        $ignoredFields = ['updated_at', 'created_at', 'password', 'remember_token'];
-
-        $changes = [];
-
-        foreach ($after as $key => $newValue) {
-            if (in_array($key, $ignoredFields)) continue;
-
-            $oldValue = $before->get($key);
-
-            $normalizedOld = ($oldValue === "" || $oldValue === null) ? null : $oldValue;
-            $normalizedNew = ($newValue === "" || $newValue === null) ? null : $newValue;
-
-            if ($normalizedOld != $normalizedNew) {
-                $changes[$key] = [
-                    'from' => $oldValue ?? 'NULL',
-                    'to'   => $newValue ?? 'NULL'
-                ];
+        return Attribute::make(
+            get: function () {
+                $before = $this->metadata['before'] ?? [];
+                $after = $this->metadata['after'] ?? [];
+                return array_diff_assoc($after, $before);
             }
-        }
-
-        return $changes;
+        );
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function target(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function prunable()
+    {
+        return static::where('created_at', '<=', now()->subMonths(6));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Actions\Admin;
 
 use App\Models\AuditLog;
+use App\Enums\AuditSeverity;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class FetchAuditLogsAction
@@ -16,25 +17,22 @@ class FetchAuditLogsAction
                     $q->where('action', 'ILIKE', "%{$search}%")
                         ->orWhere('category', 'ILIKE', "%{$search}%")
                         ->orWhere('ip_address', 'ILIKE', "%{$search}%")
-                        ->orWhereHas('user', function ($userQuery) use ($search) {
-                            $userQuery->where('first_name', 'ILIKE', "%{$search}%")
-                                ->orWhere('username', 'ILIKE', "%{$search}%");
-                        })
-                        ->orWhere('metadata->target_user', 'ILIKE', "%{$search}%");
+                        ->orWhereRaw('metadata::text ILIKE ?', ["%{$search}%"])
+                        ->orWhereHas('user', function ($u) use ($search) {
+                            $u->where('first_name', 'ILIKE', "%{$search}%")
+                                ->orWhere('username', 'ILIKE', "%{$search}%")
+                                ->orWhere('email', 'ILIKE', "%{$search}%");
+                        });
                 });
             })
             ->when($filters['severity'] ?? null, function ($query, $severity) {
-                $query->where('severity', $severity);
+                if ($sev = AuditSeverity::tryFrom($severity)) {
+                    $query->where('severity', $sev);
+                }
             })
-            ->when($filters['year'] ?? null, function ($query, $year) {
-                $query->whereYear('created_at', $year);
-            })
-            ->when($filters['month'] ?? null, function ($query, $month) {
-                $query->whereMonth('created_at', $month);
-            })
-            ->when($filters['day'] ?? null, function ($query, $day) {
-                $query->whereDay('created_at', $day);
-            })
+            ->when($filters['year'] ?? null, fn($q, $y) => $q->whereYear('created_at', $y))
+            ->when($filters['month'] ?? null, fn($q, $m) => $q->whereMonth('created_at', $m))
+            ->when($filters['day'] ?? null, fn($q, $d) => $q->whereDay('created_at', $d))
             ->paginate($perPage)
             ->withQueryString();
     }

@@ -128,12 +128,12 @@
                                 {{-- Actor --}}
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                            {{ $log->user ? strtoupper(substr($log->user->first_name, 0, 1)) : "S" }}
+                                        <div class="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all uppercase">
+                                            {{ $log->user ? substr($log->user->first_name, 0, 1) : "S" }}
                                         </div>
                                         <div class="min-w-0">
                                             <p class="text-xs font-bold text-slate-900 truncate">{{ $log->user->first_name ?? "System" }}</p>
-                                            <p class="text-[9px] font-mono text-slate-400 uppercase">{{ $log->user->role ?? "Automated" }}</p>
+                                            <p class="text-[9px] font-mono text-slate-400 uppercase">IP: {{ $log->ip_address }}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -147,62 +147,37 @@
                                             <span class="text-[9px] font-bold text-slate-500 uppercase">{{ $log->category }}</span>
                                         </div>
 
-                                        @if ($log->metadata)
-                                            <div class="flex flex-wrap gap-1.5 items-center mt-1 max-h-24 overflow-y-auto scrollbar-thin">
-                                                {{-- 1. Label Utama (Target) --}}
-                                                <span class="text-[10px] text-slate-700 font-bold uppercase">
-                                                    {{ $log->target_label }}
+                                        {{-- Tampilan Metadata Otomatis --}}
+                                        <div class="flex flex-wrap gap-1 mt-1">
+                                            @foreach (collect($log->metadata)->except(["before", "after"]) as $key => $val)
+                                                <span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[8px] font-mono rounded border border-slate-200 uppercase">
+                                                    {{ str_replace("_", " ", $key) }}: <span class="font-bold">{{ is_array($val) ? "JSON" : $val }}</span>
                                                 </span>
-
-                                                <div class="h-3 w-px bg-slate-200 mx-1"></div>
-
-                                                {{-- 2. Tampilkan Perubahan Field (Jika ada) --}}
-                                                @if (count($log->modified_fields) > 0)
-                                                    @foreach ($log->modified_fields as $field => $change)
-                                                        <div class="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 border border-indigo-100 rounded text-[8px] font-mono">
-                                                            <span class="text-slate-400 uppercase">{{ str_replace("_", " ", $field) }}:</span>
-                                                            <span class="text-slate-500 line-through">{{ $change["from"] }}</span>
-                                                            <svg class="w-2 h-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path d="M13 7l5 5m0 0l-5 5m5-5H6" stroke-width="3" />
-                                                            </svg>
-                                                            {{-- PASTIKAN INI ADALAH $change['to'] --}}
-                                                            <span class="text-indigo-600 font-black">{{ $change["to"] }}</span>
-                                                        </div>
-                                                    @endforeach
-                                                @endif
-
-                                                {{-- 3. Info Metadata Lainnya (Selain before/after/target) --}}
-                                                @foreach ($log->metadata as $key => $value)
-                                                    @if (!in_array($key, ["before", "after", "server_name", "key_name", "target_user", "username", "provisioned_email"]))
-                                                        <div class="flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[8px] font-mono">
-                                                            <span class="text-slate-400 uppercase">{{ str_replace("_", " ", $key) }}:</span>
-                                                            <span class="text-slate-600 font-bold uppercase">{{ $value }}</span>
-                                                        </div>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                        @endif
+                                            @endforeach
+                                        </div>
                                     </div>
                                 </td>
 
-                                {{-- Severity Badge --}}
+                                {{-- Severity --}}
                                 <td class="px-6 py-4">
                                     @php
-                                        $sevClasses = match ($log->severity) {
-                                            "critical" => "bg-rose-50 text-rose-600 border-rose-100",
-                                            "warning" => "bg-amber-50 text-amber-600 border-amber-100",
-                                            default => "bg-emerald-50 text-emerald-600 border-emerald-100",
+                                        // AMAN: Mengambil string value dari Enum
+                                        $status = $log->severity->value ?? "info";
+                                        $color = match ($status) {
+                                            "critical" => "text-rose-600 bg-rose-50 border-rose-100",
+                                            "warning" => "text-amber-600 bg-amber-50 border-amber-100",
+                                            default => "text-emerald-600 bg-emerald-50 border-emerald-100",
                                         };
                                     @endphp
-                                    <span class="px-2 py-0.5 border {{ $sevClasses }} text-[8px] font-black uppercase tracking-widest rounded-md">
-                                        {{ $log->severity }}
+                                    <span class="px-2 py-0.5 border {{ $color }} text-[8px] font-black uppercase tracking-widest rounded-md">
+                                        {{ $status }}
                                     </span>
                                 </td>
 
-                                {{-- Trace (IP Address) --}}
+                                {{-- Trace ID --}}
                                 <td class="px-6 py-4 text-right">
-                                    <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
-                                        {{ $log->ip_address }}
+                                    <span class="text-[9px] font-mono text-slate-300">
+                                        #{{ substr($log->id, 0, 8) }}
                                     </span>
                                 </td>
                             </tr>

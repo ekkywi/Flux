@@ -12,14 +12,15 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->nullable()->constrained()->onDelete('set null');
             $table->string('action');
-            $table->string('category');
-            $table->enum('severity', ['info', 'warning', 'critical']);
-            $table->string('target_type')->nullable();
-            $table->uuid('target_id')->nullable();
-            $table->json('metadata')->nullable();
+            $table->string('category')->index();
+            $table->string('severity')->default('info');
+            $table->nullableUuidMorphs(('target'));
+            $table->jsonb('metadata')->default('[]');
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
-            $table->timestamps();
+            $table->uuid('correlation_id')->nullable()->index();
+            $table->timestampsTz();
+            $table->index(['category', 'severity', 'created_at']);
         });
     }
 

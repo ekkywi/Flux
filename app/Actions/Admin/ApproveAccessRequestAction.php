@@ -5,6 +5,9 @@ namespace App\Actions\Admin;
 use App\Models\AccessRequest;
 use App\Models\AuditLog;
 use App\Enums\ApprovalType;
+use App\Enums\AuditSeverity;
+use App\Services\Core\AuditLogger;
+use App\DTOs\AuditLogData;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -35,21 +38,19 @@ class ApproveAccessRequestAction
                 'metadata'     => $metadata,
             ]);
 
-            AuditLog::create([
-                'user_id'     => $adminId,
-                'action'      => 'ACCESS_AUTHORIZED',
-                'category'    => 'SECURITY',
-                'severity'    => 'critical',
-                'target_type' => 'AccessRequest',
-                'target_id'   => $request->id,
-                'metadata'    => [
+            AuditLogger::log(new AuditLogData(
+                action: 'ACCESS_AUTHORIZED',
+                category: 'SECURITY',
+                user_id: $adminId,
+                severity: AuditSeverity::CRITICAL,
+                target_type: $request::class,
+                target_id: $request->id,
+                metadata: [
                     'request_type' => $request->request_type->value,
-                    'target_user'  => $request->user->email,
-                    'processed_at' => now()->toDateTimeString(),
-                ],
-                'ip_address'  => request()->ip(),
-                'user_agent'  => request()->userAgent(),
-            ]);
+                    'target_user' => $request->user->email,
+                    'provisioned' => $metadata['provisioned_at'] ?? null,
+                ]
+            ));
         });
     }
 

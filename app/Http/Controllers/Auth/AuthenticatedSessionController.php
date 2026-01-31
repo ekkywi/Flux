@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Actions\Auth\LoginUserAction;
+use App\Services\Core\AuditLogger;
+use App\DTOs\AuditLogData;
+use App\Enums\AuditSeverity;
+use Illuminate\Support\Facades\Auth;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -38,9 +41,22 @@ class AuthenticatedSessionController extends Controller
 
     public function destroy(Request $request)
     {
+        if (Auth::check()) {
+            AuditLogger::log(new AuditLogData(
+                action: 'user_logout',
+                category: 'authentication',
+                severity: AuditSeverity::INFO,
+                metadata: [
+                    'email' => Auth::user()->email,
+                    'username' => Auth::user()->username,
+                ]
+            ));
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/');
     }
 }
