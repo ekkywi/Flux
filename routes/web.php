@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\Security\MasterKeyController;
 use App\Http\Controllers\Admin\ServerManagementController;
+use App\Http\Controllers\Admin\ColdStorageController;
 
 // --- GUEST ONLY ---
 Route::middleware('guest')->group(function () {
@@ -65,15 +66,22 @@ Route::middleware('auth')->group(function () {
             });
         });
 
-        // 5. Infrastructure Inventory
+        // 5. Cold Storage Server
+        Route::controller(ColdStorageController::class)->group(function () {
+            Route::get('/server/cold-storage', 'index')->name('servers.cold-storage');
+        });
+
+        // 6. Server Inventory
         Route::controller(ServerManagementController::class)->group(function () {
             Route::get('/servers', 'index')->name('servers.index');
             Route::post('/servers', 'store')->name('servers.store');
-            Route::put('/servers/{server}', 'update')->name('servers.update');
+            Route::get('/servers/archived', 'archived')->name('servers.archived');
+
+            // Route dengan {wildcard}
             Route::get('/servers/{server}/test-link', 'testLink')->name('servers.test-link');
             Route::post('/servers/{server}/deploy-key', 'deployKey')->name('servers.deploy-key');
+            Route::put('/servers/{server}', 'update')->name('servers.update');
             Route::delete('/servers/{server}', 'destroy')->name('servers.destroy');
-            Route::get('/servers/archived', 'archived')->name('servers.archived');
             Route::patch('/servers/{id}/restore', 'restore')->name('servers.restore');
         });
     });

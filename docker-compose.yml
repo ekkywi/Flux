@@ -11,6 +11,7 @@ services:
       - .:/app
       - /app/vendor
       - /app/node_modules
+      - flux-archives:/app/storage/app/archives
     environment:
       - APP_ENV=local
       - XDG_CONFIG_HOME=/tmp
@@ -20,6 +21,19 @@ services:
     networks:
       - flux-network
     command: php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=8000 --admin-port=2021 --watch
+
+  flux-scheduler:
+    build: .
+    container_name: flux-scheduler
+    restart: always
+    volumes:
+      - .:/app
+      - flux-archives:/app/storage/app/archives
+    networks:
+      - flux-network
+    depends_on:
+      - flux-app
+    command: php artisan schedule:work
 
   flux-db:
     image: postgres:18-alpine
@@ -47,3 +61,4 @@ networks:
 
 volumes:
   flux-db-data:
+  flux-archives:

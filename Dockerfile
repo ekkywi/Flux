@@ -30,7 +30,12 @@ RUN composer install --no-scripts --no-autoloader --no-interaction
 # 6. Copy seluruh project
 COPY . .
 
-# 7. Generate Autoloader & Atur Izin
+# 7. Membuat folder dan set permission
+RUN mkdir -p storage/app/archives/servers && \
+    chown -R www-data:www-data storage bootstrap/cache && \
+    chmod -R 775 storage bootstrap/cache
+
+# 8. Generate Autoloader & Atur Izin
 RUN composer dump-autoload --optimize && \
     chown -R www-data:www-data storage bootstrap/cache
 

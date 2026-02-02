@@ -31,6 +31,12 @@
                 </div>
                 <div class="w-px h-6 bg-slate-100"></div>
 
+                <a class="px-3 py-1.5 bg-slate-50 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all flex items-center gap-2 border border-transparent hover:border-indigo-100" href="{{ route("admin.servers.cold-storage") }}">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
+                    </svg>
+                    Vault
+                </a>
                 <a class="px-3 py-1.5 bg-slate-50 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-50 hover:text-rose-600 transition-all flex items-center gap-2 border border-transparent hover:border-rose-100" href="{{ route("admin.servers.archived") }}">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2.5" />
