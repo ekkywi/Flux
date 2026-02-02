@@ -27,7 +27,7 @@ class RejectAccessRequestAction
             ]);
 
             AuditLogger::log(new AuditLogData(
-                action: 'access_rejected',
+                action: 'ACCESS_REJECTED',
                 category: 'security',
                 severity: AuditSeverity::WARNING,
                 user_id: $adminId,

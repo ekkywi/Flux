@@ -23,7 +23,7 @@ class UpdateUserAction
                 $originalValues = array_intersect_key($before, $after);
 
                 AuditLogger::log(new AuditLogData(
-                    action: 'identity_updated',
+                    action: 'IDENTITY_UPDATED',
                     category: 'identity',
                     severity: AuditSeverity::INFO,
                     user_id: $actorId,

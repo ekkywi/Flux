@@ -39,7 +39,7 @@ class ApproveAccessRequestAction
             ]);
 
             AuditLogger::log(new AuditLogData(
-                action: 'access_authorized',
+                action: 'ACCESS_AUTHORIZED',
                 category: 'security',
                 user_id: $adminId,
                 severity: AuditSeverity::CRITICAL,

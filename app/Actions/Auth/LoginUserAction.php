@@ -26,7 +26,7 @@ class LoginUserAction
         }
 
         AuditLogger::Log(new AuditLogData(
-            action: 'user_login_attempt',
+            action: 'USER_LOGGIN_ATTEMPT',
             category: 'authentication',
             severity: Auth::check() ? AuditSeverity::INFO : AuditSeverity::WARNING,
             metadata: [

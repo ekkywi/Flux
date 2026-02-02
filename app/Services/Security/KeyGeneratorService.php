@@ -32,7 +32,7 @@ class KeyGeneratorService
     {
         AuditLog::create([
             'user_id' => Auth::id(),
-            'action' => 'Rotated Master SSH Key',
+            'action' => 'ROTATED_MASTER_SSH_KEY',
             'category' => 'secuirity',
             'severity' => 'critical',
             'target_type' => get_class($setting),

@@ -26,7 +26,7 @@ class ProvisionUserAction
             ]);
 
             AuditLogger::log(new AuditLogData(
-                action: 'identity_provisioned',
+                action: 'IDENTITY_PROVISIONED',
                 category: 'identity',
                 severity: AuditSeverity::CRITICAL,
                 user_id: $adminId,

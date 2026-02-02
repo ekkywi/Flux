@@ -69,9 +69,12 @@ Route::middleware('auth')->group(function () {
         Route::controller(ServerManagementController::class)->group(function () {
             Route::get('/servers', 'index')->name('servers.index');
             Route::post('/servers', 'store')->name('servers.store');
+            Route::put('/servers/{server}', 'update')->name('servers.update');
             Route::get('/servers/{server}/test-link', 'testLink')->name('servers.test-link');
             Route::post('/servers/{server}/deploy-key', 'deployKey')->name('servers.deploy-key');
-            // ... delete, update nanti
+            Route::delete('/servers/{server}', 'destroy')->name('servers.destroy');
+            Route::get('/servers/archived', 'archived')->name('servers.archived');
+            Route::patch('/servers/{id}/restore', 'restore')->name('servers.restore');
         });
     });
 

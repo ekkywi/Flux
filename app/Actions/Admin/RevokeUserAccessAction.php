@@ -23,7 +23,7 @@ class RevokeUserAccessAction
             ];
 
             AuditLogger::log(new AuditLogData(
-                action: 'access_revoked',
+                action: 'ACCESS_REVOKED',
                 category: 'security',
                 severity: AuditSeverity::CRITICAL,
                 user_id: $adminId,
