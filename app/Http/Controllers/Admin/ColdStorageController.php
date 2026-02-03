@@ -28,4 +28,14 @@ class ColdStorageController extends Controller
     {
         return $this->service->generateCsv($type, $filename);
     }
+
+    public function restore($type, $filename)
+    {
+        try {
+            $this->service->restoreArchive($type, $filename);
+            return redirect()->back()->with('success', "Entity successfully restored to active database.");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', "Restore failed: " . $e->getMessage());
+        }
+    }
 }

@@ -2,9 +2,14 @@
 
 namespace App\Services\Core;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use SebastianBergmann\CodeCoverage\Test\TestSize\Unknown;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Enums\AuditSeverity;
+use App\Models\Server;
+use App\Models\User;
+use App\Services\Core\AuditLogger;
+use App\DTOs\AuditLogData;
 
 class ColdStorageService
 {
@@ -73,5 +78,70 @@ class ColdStorageService
             "Content-type" => "text/csv",
             "Content-Disposition" => "attachment; filename=Archive_{$type}_{$filename}.csv",
         ]);
+    }
+
+    public function restoreArchive(string $type, string $filename)
+    {
+        $path = "archives/{$type}/{$filename}";
+
+        if (!Storage::disk('local')->exists($path)) {
+            throw new \Exception("Archive file not found at path: {$path}");
+        }
+
+        try {
+            $archive = json_decode(Storage::disk('local')->get($path), true);
+            $identity = $archive['identity'];
+
+            return \DB::transaction(function () use ($type, $identity, $path, $filename) {
+                $modelClass = $type === 'infrastructure' ? Server::class : User::class;
+
+                if ($type === 'identity') {
+                    if (!isset($identity['username'])) {
+                        $identity['username'] = \Str::before($identity['email'], '@');
+                        if (User::where('username', $identity['username'])->exists()) {
+                            $identity['username'] .= '_' . \Str::random(4);
+                        }
+                    }
+
+                    if (!isset($identity['department'])) {
+                        $identity['department'] = 'Information Technology';
+                    }
+
+                    if (isset($identity['name']) && !isset($identity['first_name'])) {
+                        $nameParts = explode(' ', $identity['name'], 2);
+                        $identity['first_name'] = $nameParts[0];
+                        $identity['last_name']  = $nameParts[1] ?? '';
+                    }
+
+                    unset($identity['id'], $identity['name'], $identity['created_at'], $identity['updated_at']);
+                    $identity['password'] = \Hash::make(\Str::random(16));
+                }
+
+                $entity = $modelClass::create($identity);
+
+                AuditLogger::log(new AuditLogData(
+                    action: strtoupper($type) . '_ENTITY_RESTORED',
+                    category: $type,
+                    severity: AuditSeverity::WARNING,
+                    user_id: auth()->id(),
+                    target_type: $modelClass,
+                    target_id: $entity->id,
+                    metadata: ['original_archive' => $filename]
+                ));
+
+                Storage::disk('local')->delete($path);
+                return true;
+            });
+        } catch (\Throwable $e) {
+            Log::error("RESTORE_FAILED: Error restoring {$type} archive [{$filename}]", [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'data_attempted' => $identity ?? null
+            ]);
+
+            throw $e;
+        }
     }
 }

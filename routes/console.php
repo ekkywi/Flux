@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('flux:autoprune-servers')->dailyAt('02:00');
+Schedule::command('flux:autoprune-users')->dailyAt('02:00');

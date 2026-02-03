@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('cold-storage')->name('cold-storage.')->group(function () {
             Route::get('/{type}', [ColdStorageController::class, 'index'])->name('index');
             Route::get('/{type}/{filename}/download', [ColdStorageController::class, 'download'])->name('download');
+            Route::post('/{type}/{filename}/restore', [ColdStorageController::class, 'restore'])->name('restore');
         });
         // 6. Server Inventory
         Route::controller(ServerManagementController::class)->group(function () {

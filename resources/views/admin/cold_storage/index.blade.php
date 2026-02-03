@@ -21,17 +21,33 @@
             </div>
 
             @php
-                $backRoute = match ($type) {
-                    "infrastructure" => route("admin.servers.index"),
-                    "identity" => route("admin.users.index"),
-                    default => route("console.dashboard"),
+                $context = match ($type) {
+                    "infrastructure" => [
+                        "label" => "Server Inventory",
+                        "route" => route("admin.servers.index"),
+                        "icon" => "M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2...",
+                        "color" => "hover:bg-indigo-600",
+                    ],
+                    "identity" => [
+                        "label" => "User Management",
+                        "route" => route("admin.users.index"),
+                        "icon" => "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1...",
+                        "color" => "hover:bg-emerald-600",
+                    ],
+                    default => [
+                        "label" => "Console Dashboard",
+                        "route" => route("console.dashboard"),
+                        "icon" => "M3 12l2-2m0 0l7-7 7 7M5 10v10...",
+                        "color" => "hover:bg-slate-700",
+                    ],
                 };
             @endphp
-            <a class="px-5 py-2.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200 flex items-center gap-2" href="{{ $backRoute }}">
+
+            <a class="px-5 py-2.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-slate-200 flex items-center gap-2 {{ $context["color"] }}" href="{{ $context["route"] }}">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-width="2.5" />
                 </svg>
-                Back to {{ ucfirst($type === "infrastructure" ? "inventory" : $type) }}
+                Return to {{ $context["label"] }}
             </a>
         </div>
 
@@ -112,6 +128,16 @@
                 </div>
 
                 <div class="flex items-center gap-3">
+                    <form action="" id="restoreForm" method="POST">
+                        @csrf
+                        <button class="px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-100" type="submit">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2.5" />
+                            </svg>
+                            Restore to Active
+                        </button>
+                    </form>
+
                     <a class="px-4 py-2 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-lg shadow-emerald-100" href="#" id="downloadBtn">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2.5" />
@@ -189,6 +215,7 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const searchInput = document.getElementById('vaultSearch');
 
+
         // --- 1. LIVE SEARCH LOGIC ---
         searchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase();
@@ -228,6 +255,10 @@
                 // Setup Download Link
                 const baseUrl = "{{ route("admin.cold-storage.download", [$type, ":filename"]) }}";
                 downloadBtn.href = baseUrl.replace(':filename', filename);
+
+                // Update URL Restore Form
+                const restoreBaseUrl = "{{ route("admin.cold-storage.restore", [$type, ":filename"]) }}";
+                document.getElementById('restoreForm').action = restoreBaseUrl.replace(':filename', filename);
 
                 // Populate Modal Headers
                 document.getElementById('modalNodeName').textContent = identity.name || identity.username || "Unknown";

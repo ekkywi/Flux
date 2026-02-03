@@ -51,4 +51,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(AccessRequest::class);
     }
+
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'target');
+    }
 }
