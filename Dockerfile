@@ -31,7 +31,9 @@ RUN composer install --no-scripts --no-autoloader --no-interaction
 COPY . .
 
 # 7. Membuat folder dan set permission
-RUN mkdir -p storage/app/archives/servers && \
+RUN mkdir -p storage/app/archives/infrastructure \
+             storage/app/archives/identity \
+             storage/app/archives/projects && \
     chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
 

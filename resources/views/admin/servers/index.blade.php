@@ -31,7 +31,7 @@
                 </div>
                 <div class="w-px h-6 bg-slate-100"></div>
 
-                <a class="px-3 py-1.5 bg-slate-50 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all flex items-center gap-2 border border-transparent hover:border-indigo-100" href="{{ route("admin.servers.cold-storage") }}">
+                <a class="px-3 py-1.5 bg-slate-50 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all flex items-center gap-2 border border-transparent hover:border-indigo-100" href="{{ route("admin.cold-storage.index", "infrastructure") }}">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
                     </svg>

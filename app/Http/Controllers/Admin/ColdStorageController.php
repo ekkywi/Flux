@@ -5,27 +5,27 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use App\Services\Core\ColdStorageService;
 
 class ColdStorageController extends Controller
 {
-    public function index(): View
+    protected $service;
+
+    public function __construct(ColdStorageService $service)
     {
-        $files = Storage::disk('local')->files('archives/servers');
+        $this->service = $service;
+    }
 
-        $archives = collect($files)->map(function ($path) {
-            $content = json_decode(Storage::disk('local')->get($path), true);
+    public function index($type)
+    {
+        abort_unless(in_array($type, ['infrastructure', 'identity', 'projects']), 404);
 
-            return (object) [
-                'filename'      => basename($path),
-                'name'          => $content['identity']['name'] ?? 'Unknown',
-                'ip'            => $content['identity']['ip_address'] ?? '0.0.0.0',
-                'env'           => $content['identity']['environment'] ?? 'N/A',
-                'pruned_at'     => $content['metadata']['prune_at'] ?? 'N/A',
-                'logs_count'    => count($content['audit_trail'] ?? []),
-                'raw_data'      => $content
-            ];
-        })->sortByDesc('pruned_at');
+        $archives = $this->service->getArchives($type);
+        return view('admin.cold_storage.index', compact('archives', 'type'));
+    }
 
-        return view('admin.servers.cold_storage', compact('archives'));
+    public function download($type, $filename)
+    {
+        return $this->service->generateCsv($type, $filename);
     }
 }

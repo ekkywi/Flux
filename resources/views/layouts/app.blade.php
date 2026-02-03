@@ -110,12 +110,13 @@
                 </div>
             </div>
 
-            <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
-                <div class="px-4 py-4 mt-2 border-t border-white/5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Main Menu</span>
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-4">
+                {{-- SECTION: MAIN --}}
+                <div class="px-4 py-3">
+                    <span class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-600">Main Control</span>
                 </div>
 
-                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all {{ request()->routeIs("console.dashboard") ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/40" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("console.dashboard") }}">
+                <a class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all {{ request()->routeIs("console.dashboard") ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/40" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("console.dashboard") }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-width="2" />
                     </svg>
@@ -123,12 +124,13 @@
                 </a>
 
                 @if (Auth::user()->role === "System Administrator")
-                    <div class="px-4 pt-8 pb-4">
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Privileged</span>
+                    {{-- SECTION: PRIVILEGED --}}
+                    <div class="px-4 pt-6 pb-2">
+                        <span class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-600">Privileged Access</span>
                     </div>
 
-                    {{-- Menu Approvals (Existing) --}}
-                    <a class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all {{ request()->routeIs("admin.approvals.*") ? "bg-indigo-600/10 text-indigo-400" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.approvals.index") }}">
+                    {{-- 1. Approvals --}}
+                    <a class="flex items-center justify-between px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all {{ request()->routeIs("admin.approvals.*") ? "bg-indigo-600/10 text-indigo-400" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.approvals.index") }}">
                         <div class="flex items-center gap-3">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-width="2" />
@@ -136,87 +138,75 @@
                             <span>Approvals</span>
                         </div>
                         @if (isset($pendingCount) && $pendingCount > 0)
-                            <span class="flex h-5 min-w-[20px] px-1 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white animate-pulse">{{ $pendingCount }}</span>
+                            <span class="flex h-5 min-w-[20px] px-1.5 items-center justify-center rounded-lg bg-rose-500 text-[10px] font-black text-white animate-pulse">{{ $pendingCount }}</span>
                         @endif
                     </a>
 
-                    {{-- Menu User Management --}}
-                    <a class="flex items-center gap-3 px-4 py-3 mt-2 rounded-xl text-sm font-medium transition-all {{ request()->routeIs("admin.users.*") ? "bg-indigo-600/10 text-indigo-400" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.users.index") }}">
+                    {{-- 2. User Management --}}
+                    <a class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all {{ request()->routeIs("admin.users.*") ? "bg-indigo-600/10 text-indigo-400" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.users.index") }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-width="2" />
                         </svg>
                         <span>User Management</span>
                     </a>
-                    {{-- 1. Server Inventory --}}
-                    <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all 
-    {{ request()->routeIs("admin.servers.*") && !request()->routeIs("admin.servers.cold-storage") ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/40" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.servers.index") }}">
+
+                    {{-- 3. Server Inventory --}}
+                    <a class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all {{ request()->routeIs("admin.servers.*") && !request()->routeIs("admin.cold-storage.*") ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/40" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.servers.index") }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" stroke-width="2" />
                         </svg>
                         <span>Server Inventory</span>
                     </a>
 
-                    {{-- Cold Storage Dropdown --}}
+                    {{-- 4. Cold Storage (Dropdown) --}}
                     <div class="space-y-1" id="coldStorageMenuWrapper">
-                        <button class="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all {{ request()->routeIs("admin.servers.cold-storage") ? "bg-white/5 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" onclick="toggleColdStorageMenu()">
+                        <button class="flex items-center justify-between w-full px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all {{ request()->routeIs("admin.cold-storage.*") ? "bg-white/5 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" onclick="toggleColdStorageMenu()">
                             <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5 {{ request()->routeIs("admin.servers.cold-storage") ? "text-indigo-400" : "" }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 {{ request()->routeIs("admin.cold-storage.*") ? "text-indigo-400" : "" }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                                 </svg>
                                 <span>Cold Storage</span>
                             </div>
-                            <svg class="w-4 h-4 transition-transform {{ request()->routeIs("admin.servers.cold-storage") ? "rotate-180" : "" }}" fill="none" id="coldStorageArrow" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3.5 h-3.5 transition-transform {{ request()->routeIs("admin.cold-storage.*") ? "rotate-180" : "" }}" fill="none" id="coldStorageArrow" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
                             </svg>
                         </button>
 
-                        {{-- Dropdown Content --}}
-                        <div class="{{ request()->routeIs("admin.servers.cold-storage") ? "" : "hidden" }} pl-11 space-y-1 overflow-hidden transition-all" id="coldStorageDropdown">
-                            {{-- Sub-menu: Servers --}}
-                            <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs("admin.servers.cold-storage") ? "text-indigo-400" : "text-slate-500 hover:text-white" }}" href="{{ route("admin.servers.cold-storage") }}">
-                                <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs("admin.servers.cold-storage") ? "bg-indigo-500" : "bg-slate-700" }}"></div>
-                                Server Nodes
-                            </a>
-
-                            {{-- Placeholder untuk masa depan --}}
-                            <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-bold text-slate-700 cursor-not-allowed opacity-50" href="#">
-                                <div class="w-1.5 h-1.5 rounded-full bg-slate-800"></div>
-                                User Records (Soon)
-                            </a>
+                        {{-- Dropdown Content dengan Parameter Dinamis --}}
+                        <div class="{{ request()->routeIs("admin.cold-storage.*") ? "" : "hidden" }} pl-12 space-y-1 mt-1" id="coldStorageDropdown">
+                            @foreach (["infrastructure" => "Infrastructure", "identity" => "Identity Vault", "projects" => "Project Archives"] as $type => $label)
+                                <a class="flex items-center gap-3 py-2 text-[11px] font-extrabold uppercase tracking-widest transition-all 
+        {{ request()->route("type") == $type ? "text-indigo-400" : "text-slate-500 hover:text-white" }}" href="{{ route("admin.cold-storage.index", $type) }}"> {{-- VARIABEL $type, BUKAN "infrastructure" --}}
+                                    <div class="w-1 h-1 rounded-full {{ request()->route("type") == $type ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]" : "bg-slate-700" }}"></div>
+                                    {{ $label }}
+                                </a>
+                            @endforeach
                         </div>
                     </div>
 
-                    {{-- Security Settings Dropdown --}}
-                    <div class="space-y-1" id="securityMenuWrapper">
-                        <button class="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all {{ request()->routeIs("admin.security.*") ? "bg-white/5 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" onclick="toggleSecurityMenu()">
+                    {{-- 5. Security Settings (Dropdown) --}}
+                    <div class="space-y-1">
+                        <button class="flex items-center justify-between w-full px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all {{ request()->routeIs("admin.security.*") ? "bg-white/5 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" onclick="toggleSecurityMenu()">
                             <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 {{ request()->routeIs("admin.security.*") ? "text-indigo-400" : "" }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                                 </svg>
                                 <span>Security Settings</span>
                             </div>
-                            <svg class="w-4 h-4 transition-transform {{ request()->routeIs("admin.security.*") ? "rotate-180" : "" }}" fill="none" id="securityArrow" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3.5 h-3.5 transition-transform {{ request()->routeIs("admin.security.*") ? "rotate-180" : "" }}" fill="none" id="securityArrow" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
                             </svg>
                         </button>
-
-                        {{-- Dropdown Content --}}
-                        <div class="{{ request()->routeIs("admin.security.*") ? "" : "hidden" }} pl-11 space-y-1 overflow-hidden transition-all" id="securityDropdown">
-                            <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs("admin.security.master-key.*") ? "text-indigo-400" : "text-slate-500 hover:text-white" }}" href="{{ route("admin.security.master-key.index") }}">
-                                <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs("admin.security.master-key.*") ? "bg-indigo-500" : "bg-slate-700" }}"></div>
+                        <div class="{{ request()->routeIs("admin.security.*") ? "" : "hidden" }} pl-12 space-y-1 mt-1" id="securityDropdown">
+                            <a class="flex items-center gap-3 py-2 text-[11px] font-extrabold uppercase tracking-widest transition-all {{ request()->routeIs("admin.security.master-key.*") ? "text-indigo-400" : "text-slate-500 hover:text-white" }}" href="{{ route("admin.security.master-key.index") }}">
+                                <div class="w-1 h-1 rounded-full {{ request()->routeIs("admin.security.master-key.*") ? "bg-indigo-500" : "bg-slate-700" }}"></div>
                                 Master SSH Key
                             </a>
-
-                            {{-- Nanti bisa tambah menu lain di sini, misal: API Keys --}}
-                            {{-- <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-white">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
-            Audit Logs
-        </a> --}}
                         </div>
                     </div>
 
-                    {{-- System Logs (Audit Trail) --}}
-                    <a class="flex items-center gap-3 px-4 py-3 mt-2 rounded-xl text-sm font-medium transition-all {{ request()->routeIs("admin.logs.*") ? "bg-indigo-600/10 text-indigo-400 font-bold" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.logs.index") }}">
+                    {{-- 6. System Logs --}}
+                    <a class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all {{ request()->routeIs("admin.logs.*") ? "bg-indigo-600/10 text-indigo-400" : "text-slate-400 hover:bg-white/5 hover:text-white" }}" href="{{ route("admin.logs.index") }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-width="2" />
                         </svg>

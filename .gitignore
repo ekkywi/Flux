@@ -26,3 +26,15 @@ Thumbs.db
 **/caddy
 frankenphp
 frankenphp-worker.php
+
+
+storage/app/archives
+storage/app/private
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views
+storage/logs
+vendor
+node_modules
+.git
+.env

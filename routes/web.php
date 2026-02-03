@@ -67,10 +67,10 @@ Route::middleware('auth')->group(function () {
         });
 
         // 5. Cold Storage Server
-        Route::controller(ColdStorageController::class)->group(function () {
-            Route::get('/server/cold-storage', 'index')->name('servers.cold-storage');
+        Route::prefix('cold-storage')->name('cold-storage.')->group(function () {
+            Route::get('/{type}', [ColdStorageController::class, 'index'])->name('index');
+            Route::get('/{type}/{filename}/download', [ColdStorageController::class, 'download'])->name('download');
         });
-
         // 6. Server Inventory
         Route::controller(ServerManagementController::class)->group(function () {
             Route::get('/servers', 'index')->name('servers.index');

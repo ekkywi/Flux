@@ -36,19 +36,24 @@ class AutopruneServers extends Command
                 ->get();
 
             $snapshot = [
-                'metadata' => [
-                    'prune_at' => now()->toDateTimeString(),
-                    'retention_period' => '30-days',
-                ],
                 'identity' => $server->makeVisible([
                     'ssh_port',
                     'ssh_user',
                     'description'
                 ])->toArray(),
+                'metadata' => [
+                    'prune_at' => now()->toDateTimeString(),
+                    'retention_period' => '30-days',
+                    'category' => 'infrastructure'
+                ],
                 'audit_trail' => $logs->toArray(),
             ];
 
-            $filename = "servers/PRUNED_{$server->id}_" . now()->format('Ymd_His') . ".json";
+            if (!Storage::disk('local')->exists('archives/infrastructure')) {
+                Storage::disk('local')->makeDirectory('archives/infrastructure');
+            }
+
+            $filename = "infrastructure/PRUNED_{$server->id}_" . now()->format('Ymd_His') . ".json";
             Storage::disk('local')->put("archives/{$filename}", json_encode($snapshot, JSON_PRETTY_PRINT));
 
             AuditLogger::log(new AuditLogData(
@@ -60,7 +65,7 @@ class AutopruneServers extends Command
                 target_id: $server->id,
                 metadata: [
                     'server_name' => $server->name,
-                    'reason' => 'Retention perion exceeded (30 days).',
+                    'reason' => 'Retention period exceeded (30 days).',
                     'backup_file' => $filename
                 ]
             ));
