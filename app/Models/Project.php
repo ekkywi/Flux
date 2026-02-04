@@ -20,7 +20,7 @@ class Project extends Model
         'description'
     ];
 
-    protected $cast = [
+    protected $casts = [
         'stack_options' => 'array',
     ];
 

@@ -15,7 +15,8 @@ class ProjectEnvironment extends Model
         'name',
         'server_app_id',
         'server_db_id',
-        'env_vars'
+        'env_vars',
+        'assigned_port'
     ];
 
     protected $casts = [

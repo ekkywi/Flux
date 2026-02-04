@@ -23,6 +23,6 @@ class ProjectMember extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belonsTo(User::class);
+        return $this->belongsTo(User::class);
     }
 }
