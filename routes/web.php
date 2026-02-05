@@ -3,13 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Console\DashboardController;
 use App\Http\Controllers\Admin\UserApprovalController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\SystemLogController;
-use App\Http\Controllers\Security\MasterKeyController;
 use App\Http\Controllers\Admin\ServerManagementController;
 use App\Http\Controllers\Admin\ColdStorageController;
+use App\Http\Controllers\Security\MasterKeyController;
+use App\Http\Controllers\Console\DashboardController;
+use App\Http\Controllers\Orchestration\ProjectController;
 
 // --- GUEST ONLY ---
 Route::middleware('guest')->group(function () {
@@ -28,6 +29,19 @@ Route::middleware('auth')->group(function () {
     // Grouping Console (Untuk semua user yang sudah aktif)
     Route::prefix('console')->name('console.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Project Orchestration Pipeline
+        Route::prefix('projects')->name('projects.')->group(function () {
+            Route::get('/', [ProjectController::class, 'index'])->name('index');
+            Route::get('/create', [ProjectController::class, 'create'])->name('create');
+            Route::post('/', [ProjectController::class, 'store'])->name('store');
+            Route::get('/{project}', [ProjectController::class, 'show'])->name('show');
+
+            // Environment Actions
+            // Menggunakan {environment} sebagai wildcard agar spesifik ke Dev/Staging/Prod
+            Route::post('/environments/{environment}/assign-server', [ProjectController::class, 'assignServer'])->name('assign-server');
+            Route::post('/environments/{environment}/deploy', [ProjectController::class, 'deploy'])->name('deploy');
+        });
     });
 
     Route::middleware(['auth', 'role:System Administrator'])->prefix('admin')->name('admin.')->group(function () {

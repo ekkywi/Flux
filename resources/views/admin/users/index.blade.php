@@ -5,15 +5,6 @@
 @section("content")
     <div class="space-y-8 pb-20 text-slate-900">
 
-        {{-- 1. NOTIFICATION SYSTEM --}}
-        @if (session("success") || session("error"))
-            <div class="fixed top-4 right-4 z-[60] {{ session("success") ? "bg-emerald-500" : "bg-rose-500" }} text-white px-6 py-3 rounded-2xl shadow-2xl animate-bounce">
-                <p class="text-xs font-black uppercase tracking-widest">
-                    {{ session("success") ?? session("error") }}
-                </p>
-            </div>
-        @endif
-
         {{-- 2. STREAMLINED HEADER --}}
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-2">
             <div class="space-y-1">

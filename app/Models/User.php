@@ -57,4 +57,9 @@ class User extends Authenticatable
     {
         return $this->morphMany(AuditLog::class, 'target');
     }
+
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_members');
+    }
 }

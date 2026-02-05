@@ -11,5 +11,6 @@ Route::post('/webhooks/gitea', [GiteaWebhookController::class, 'handle']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/projects', [ProjectController::class, 'index']);
     Route::post('/projects/onboard', [ProjectController::class, 'store']);
-    Route::post('/environment/{environment}/assign-server', [ProjectController::class, 'assignServer']);
+    Route::post('/environments/{environment}/assign-server', [ProjectController::class, 'assignServer']);
+    Route::post('/environments/{environment}/deploy', [ProjectController::class, 'deploy']);
 });
