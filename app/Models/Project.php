@@ -15,9 +15,11 @@ class Project extends Model
     protected $fillable = [
         'name',
         'slug',
+        'repository_url',
         'stack_type',
         'stack_options',
-        'description'
+        'description',
+        'onboarding_status',
     ];
 
     protected $casts = [

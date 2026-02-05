@@ -62,4 +62,25 @@ class GiteaIntegrationService
                 'User-Agent'    => 'Flux-Console-Orchestrator'
             ]);
     }
+
+    public function registerWebhook(string $repoUrl): bool
+    {
+        $info = $this->parseRepoUrl($repoUrl);
+        $webhookUrl = config('app.url') . '/api/webhooks/gitea';
+        $secret = config('service.gitea.webhook_token');
+
+        /** @var Response $response */
+        $response = $this->request()->post("{$this->baseUrl}/repos/{$info['owner']}/{$info['repo']}/hooks", [
+            'type'      => 'gitea',
+            'config'    => [
+                'url'           => $webhookUrl,
+                'content_type'  => 'json',
+                'secret'        => $secret,
+            ],
+            'event'     => ['push'],
+            'active'    => true,
+        ]);
+
+        return $response->successful();
+    }
 }

@@ -5,13 +5,20 @@ namespace App\Services\Orchestration;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\ProjectEnvironment;
+use App\Services\Infrastructure\RemoteTaskService;
+use App\Services\Integrations\GiteaIntegrationService;
 use App\Services\Stacks\StackFactory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class ProjectService
 {
+    public function __construct(
+        protected GiteaIntegrationService $gitea
+    ) {}
+
     public function onboardProject(array $data, User $creator): Project
     {
         $stack = StackFactory::make($data['stack_type'] ?? 'laravel');
@@ -30,6 +37,19 @@ class ProjectService
                 'description'       => $data['description'] ?? null,
             ]);
 
+            $this->initializeEnvironment($project);
+
+            try {
+                $this->gitea->registerWebhook($project->repository_url);
+            } catch (\Exception $e) {
+                Log::error("Webhook Registeration Failure: " . $e->getMessage());
+            }
+
+            $devEnv = $project->environments()->where('name', 'development')->first();
+            if ($devEnv && $devEnv->server_app_id) {
+                $this->setupInitialInfrastructure($devEnv);
+            }
+
             $analysis = $stack->analyzeRisk($project->repository_url, $project->stack_options);
 
             $project->update([
@@ -40,8 +60,6 @@ class ProjectService
                 'user_id'   => $creator->id,
                 'is_owner'  => true,
             ]);
-
-            $this->initializeEnvironment($project);
 
             return $project;
         });
@@ -55,7 +73,7 @@ class ProjectService
             $lastPort = ProjectEnvironment::max('assigned_port') ?? 8999;
             $newPort = $lastPort + 1;
 
-            $project->environment()->create([
+            $project->environments()->create([
                 'name'          => $env,
                 'assigned_port' => $newPort,
                 'env_vars'      => [
@@ -66,5 +84,43 @@ class ProjectService
                 ],
             ]);
         }
+    }
+
+    protected function setupInitialInfrastructure(ProjectEnvironment $environment): void
+    {
+        $project = $environment->project;
+        $server = $environment->appServer;
+
+        if (!$server) return;
+
+        $taskRunner = app(RemoteTaskService::class);
+        $deployPath = "/home/{$server->ssh_user}/apps/{$project->slug}";
+        $commands = [
+            "mkdir -p {$deployPath}",
+            "cd {$deployPath}",
+            "git clone {$project->repository_url} .",
+            "docker network create flux_net_{$project->slug} || true"
+        ];
+
+        try {
+            $taskRunner->run($server, $commands);
+            Log::info("Initial infrastructure ready for {$project->name}");
+        } catch (\Exception $e) {
+            Log::error("Initial Setup Failed: " . $e->getMessage());
+        }
+    }
+
+    public function assignServer(string $environmentId, string $serverId): ProjectEnvironment
+    {
+        return DB::transaction(function () use ($environmentId, $serverId) {
+            $environment = ProjectEnvironment::findOrFail($environmentId);
+            $environment->update([
+                'server_app_id' => $serverId
+            ]);
+
+            $this->setupInitialInfrastructure($environment);
+
+            return $environment->load('project', 'appServer');
+        });
     }
 }

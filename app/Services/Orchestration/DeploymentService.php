@@ -2,6 +2,7 @@
 
 namespace App\Services\Orchestration;
 
+use App\Jobs\DeployProjectJob;
 use App\Models\Project;
 use App\Models\ProjectEnvironment;
 use App\Services\Infrastructure\RemoteTaskService;
@@ -43,28 +44,8 @@ class DeploymentService
 
     protected function executeDeployment(ProjectEnvironment $environment): void
     {
-        $project = $environment->project;
-        $server = $environment->appServer;
-        $taskRunner = app(RemoteTaskService::class);
+        DeployProjectJob::dispatch($environment);
 
-        $deployPath = "/home/{$server->ssh_user}/apps/{$project->slug}";
-
-        $commands = [
-            "cd {$deployPath}",
-            "git pull origin {$environment->name}",
-            "echo 'PORT={$environment->assigned_port}' > .env.flux",
-            "echo 'CONTAINER_NAME=flux_{$project->slug}_{$environment->name}' >> .env.flux",
-            "docker compose --env-file .env.flux up -d --build"
-        ];
-
-        try {
-            $output = $taskRunner->run($server, $commands);
-            Log::info("Deployment Output: " . $output);
-
-            $environment->update(['last_deployment_at' => now()]);
-        } catch (\Exception $e) {
-            Log::error("Deployment Failed: " . $e->getMessage());
-            throw $e;
-        }
+        Log::inf("Deployment queued for environment: {$environment->name}");
     }
 }

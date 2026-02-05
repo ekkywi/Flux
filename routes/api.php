@@ -10,4 +10,6 @@ Route::post('/webhooks/gitea', [GiteaWebhookController::class, 'handle']);
 // API untuk CLI Tool atau Integrasi lain
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/projects', [ProjectController::class, 'index']);
+    Route::post('/projects/onboard', [ProjectController::class, 'store']);
+    Route::post('/environment/{environment}/assign-server', [ProjectController::class, 'assignServer']);
 });

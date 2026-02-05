@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Orchestration;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Orchestration\StoreProjectRequest;
+use App\Models\ProjectEnvironment;
 use App\Services\Orchestration\ProjectService;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -43,6 +45,31 @@ class ProjectController extends Controller
                 'status'    => 'error',
                 'message'   => 'Onboarding failed: ' . $e->getMessage(),
             ], 422);
+        }
+    }
+
+    public function assignServer(Request $request, ProjectEnvironment $environment)
+    {
+        $request->validate([
+            'server_id' => 'required|exists:servers,id',
+        ]);
+
+        try {
+            $updatedEnv = $this->projectService->assignServer(
+                $environment->id,
+                $request->server_id
+            );
+
+            return response()->json([
+                'status'    => 'success',
+                'message'   => 'Server assigned and infrastructure initialized!',
+                'data'      => $updatedEnv
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'error',
+                'message'   => 'Failed to assign server: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
