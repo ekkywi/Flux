@@ -42,10 +42,10 @@ class DeploymentService
         };
     }
 
-    protected function executeDeployment(ProjectEnvironment $environment): void
+    public function executeDeployment(ProjectEnvironment $environment, ?string $branch = null): void
     {
-        DeployProjectJob::dispatch($environment);
+        DeployProjectJob::dispatch($environment, $branch);
 
-        Log::inf("Deployment queued for environment: {$environment->name}");
+        Log::info("Deployment queued for environment: {$environment->name} on branch: " . ($branch ?? 'default'));
     }
 }

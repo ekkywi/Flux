@@ -95,18 +95,44 @@ class ProjectService
 
         $taskRunner = app(RemoteTaskService::class);
         $deployPath = "/home/{$server->ssh_user}/apps/{$project->slug}";
-        $commands = [
-            "mkdir -p {$deployPath}",
-            "cd {$deployPath}",
-            "git clone {$project->repository_url} .",
-            "docker network create flux_net_{$project->slug} || true"
-        ];
+
+        $token = config('services.gitea.token');
+        $rawUrl = $project->repository_url;
+
+        $authRepoUrl = str_replace('http://', "http://oauth2:{$token}@", $rawUrl);
+        $authRepoUrl = str_replace('https://', "https://oauth2:{$token}@", $authRepoUrl);
+
+        $gitScript = <<<BASH
+            # Pastikan folder ada
+            mkdir -p {$deployPath}
+            
+            # Cek apakah ini folder git yang valid?
+            if [ -d "{$deployPath}/.git" ]; then
+                echo "📂 Repository detected. Updating remote URL..."
+                cd {$deployPath}
+                git remote set-url origin {$authRepoUrl}
+                git fetch origin
+            else
+                echo "✨ Repo not found or broken. Fresh cloning..."
+                # Hapus folder (bersih-bersih) jika isinya sampah/kosong
+                rm -rf {$deployPath}
+                mkdir -p {$deployPath}
+                
+                # Clone dengan Token Authentication
+                git clone {$authRepoUrl} {$deployPath}
+            fi
+
+            # Setup Docker Network (tetap dipertahankan)
+            docker network create flux_net_{$project->slug} || true
+        BASH;
 
         try {
-            $taskRunner->run($server, $commands);
+            $taskRunner->run($server, [$gitScript]);
+
             Log::info("Initial infrastructure ready for {$project->name}");
         } catch (\Exception $e) {
             Log::error("Initial Setup Failed: " . $e->getMessage());
+            throw $e;
         }
     }
 

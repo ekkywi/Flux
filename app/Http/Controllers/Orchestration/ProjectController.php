@@ -14,11 +14,12 @@ use App\Jobs\DeployProjectJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Services\Orchestration\DeploymentService;
 
 class ProjectController extends Controller
 {
     public function __construct(
-        protected ProjectService $projectService
+        protected DeploymentService $deploymentService
     ) {}
 
     public function index()
@@ -95,16 +96,15 @@ class ProjectController extends Controller
         }
     }
 
-    public function deploy(ProjectEnvironment $environment)
+    public function deploy(Request $request, ProjectEnvironment $environment)
     {
-        if (!$environment->server_app_id) {
-            return redirect()->back()
-                ->with('error', 'Cannot deploy: No server assigned to this environment.');
-        }
+        $request->validate(['branch' => 'required|string']);
 
-        DeployProjectJob::dispatch($environment);
+        $this->deploymentService->executeDeployment(
+            $environment,
+            $request->input('branch')
+        );
 
-        return redirect()->back()
-            ->with('success', 'Deployment dispatched! Flux is orchestrating the containers in the background.');
+        return response()->json(['message' => 'Deployment queued']);
     }
 }

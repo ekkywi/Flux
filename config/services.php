@@ -36,8 +36,9 @@ return [
     ],
 
     'gitea' => [
-        'base_url'  => env('GITEA_BASE_URL'),
+        'url'  => env('GITEA_BASE_URL'),
         'token'     => env('GITEA_TOKEN'),
+        'webhook_secret' => env('GITEA_WEBHOOK_SECRET'),
     ],
 
 ];

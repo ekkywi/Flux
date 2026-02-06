@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ColdStorageController;
 use App\Http\Controllers\Security\MasterKeyController;
 use App\Http\Controllers\Console\DashboardController;
 use App\Http\Controllers\Orchestration\ProjectController;
+use App\Http\Controllers\Internal\GiteaController;
 use App\Http\Controllers\Api\ProjectLogController;
 
 
@@ -27,7 +28,10 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
     Route::get('/environments/{environment}/logs', [ProjectLogController::class, 'fetch'])->name('api.environments.logs');
+    // Route untuk Dropdown Branch
+    Route::get('/internal/projects/{project}/branches', [GiteaController::class, 'getBranches'])->name('internal.projects.branches');
 
     // Grouping Console (Untuk semua user yang sudah aktif)
     Route::prefix('console')->name('console.')->group(function () {

@@ -5,19 +5,25 @@ services:
       dockerfile: Dockerfile
     container_name: flux-app
     ports:
-      - "8000:8000"
+      - "8001:8000"
       - "5173:5173"
     volumes:
       - .:/app
-      - /app/vendor
-      - /app/node_modules
+      - flux-vendor:/app/vendor
+      - flux-node-modules:/app/node_modules
       - flux-archives:/app/storage/app/archives
+      - flux-caddy-data:/data
+      - flux-caddy-config:/config
     environment:
       - APP_ENV=local
       - XDG_CONFIG_HOME=/tmp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      - flux-db
-      - flux-redis
+      flux-db:
+        condition: service_healthy
+      flux-redis:
+        condition: service_healthy
     networks:
       - flux-network
     command: php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=8000 --admin-port=2021 --watch
@@ -28,7 +34,11 @@ services:
     restart: always
     volumes:
       - .:/app
+      - flux-vendor:/app/vendor
+      - flux-node-modules:/app/node_modules
       - flux-archives:/app/storage/app/archives
+      - flux-caddy-data:/data
+      - flux-caddy-config:/config
     networks:
       - flux-network
     depends_on:
@@ -38,22 +48,37 @@ services:
   flux-db:
     image: postgres:18-alpine
     container_name: flux-db
+    restart: always
     ports:
       - "5433:5432"
     environment:
       - POSTGRES_DB=flux_db
       - POSTGRES_USER=flux_user
       - POSTGRES_PASSWORD=flux_pass
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - flux-db-data:/var/lib/postgresql/data
+      - ./flux-database:/var/lib/postgresql
     networks:
       - flux-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flux_user -d flux_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   flux-redis:
     image: redis:alpine
     container_name: flux-redis
+    restart: always
+    volumes:
+      - flux-redis-data:/data
     networks:
       - flux-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   flux-reverb:
     build: .
@@ -63,6 +88,10 @@ services:
       - "8080:8080"
     volumes:
       - .:/app
+      - flux-vendor:/app/vendor
+      - flux-node-modules:/app/node_modules
+      - flux-caddy-data:/data
+      - flux-caddy-config:/config
     networks:
       - flux-network
     depends_on:
@@ -75,11 +104,20 @@ services:
     restart: always
     volumes:
       - .:/app
+      - flux-vendor:/app/vendor
+      - flux-node-modules:/app/node_modules
+      - flux-archives:/app/storage/app/archives
+      - flux-caddy-data:/data
+      - flux-caddy-config:/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - flux-network
     depends_on:
-      - flux-app
-      - flux-redis
+      flux-app:
+        condition: service_started
+      flux-redis:
+        condition: service_healthy
     command: php artisan queue:work
 
 networks:
@@ -87,5 +125,15 @@ networks:
     driver: bridge
 
 volumes:
-  flux-db-data:
+  flux-vendor:
+    driver: local
+  flux-node-modules:
+    driver: local
+  flux-redis-data:
+    driver: local
   flux-archives:
+    driver: local
+  flux-caddy-data:
+    driver: local
+  flux-caddy-config:
+    driver: local
