@@ -18,9 +18,11 @@ class Server extends Model
         'status',
         'environment',
         'description',
+        'ssh_private_key',
     ];
 
     protected $cast = [
-        'deleted_at' => 'datetime',
+        'deleted_at'        => 'datetime',
+        'ssh_private_key'   => 'encrypted',
     ];
 }

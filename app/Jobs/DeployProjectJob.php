@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\ProjectEnvironment;
 use App\Models\DeploymentLog;
+use App\Events\DeploymentLogEvent;
 use App\Services\Infrastructure\RemoteTaskService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 class DeployProjectJob implements ShouldQueue
 {
@@ -27,33 +29,52 @@ class DeployProjectJob implements ShouldQueue
     public function handle(RemoteTaskService $taskRunner): void
     {
         $startTime = microtime(true);
-        $project = $this->environment->project;
-        $server = $this->environment->appServer;
+        $env = $this->environment;
+        $logKey = "deployment:logs:{$env->id}";
+
+        Redis::del($logKey);
+
         $deploymentLog = DeploymentLog::create([
-            'project_environment_id'    => $this->environment->id,
+            'project_environment_id'    => $env->id,
             'status'                    => 'starting',
-            'output'                    => 'Deployment initiated via Webhook.',
+            'output'                    => 'Deployment initiated...',
         ]);
 
         try {
-            $deployPath = "/home/{$server->ssh_user}/apps/{$project->slug}";
+            $deployPath = "/home/{$env->appServer->ssh_user}/apps/{$env->project->slug}";
             $commands = [
                 "cd {$deployPath}",
-                "git pull origin {$this->environment->name}",
-                "echo 'PORT={$this->environment->assigned_port}' > .env.flux",
+                "git pull origin {$env->name}",
+                "echo 'PORT={$env->assigned_port}' > .env.flux",
                 "docker compose --env-file .env.flux up -d --build --remove-orphans"
             ];
 
-            $output = $taskRunner->run($server, $commands);
+            $output = $taskRunner->run($env->appServer, $commands, function ($buffer) use ($env, $logKey) {
+                $lines = explode("\n", $buffer);
+
+                foreach ($lines as $line) {
+                    if (empty(trim($line))) continue;
+
+                    $data = [
+                        'line' => trim($line),
+                        'type' => 'info',
+                        'time' => now()->format('H:i:s')
+                    ];
+
+                    Redis::rpush($logKey, json_encode($data));
+                    Redis::expire($logKey, 3600);
+
+                    broadcast(new DeploymentLogEvent($env->id, $data));
+                }
+            });
+
             $deploymentLog->update([
                 'status'                => 'success',
                 'output'                => $output,
                 'duration_seconds'      => (int)(microtime(true) - $startTime),
             ]);
 
-            $this->environment->update([
-                'last_deployed_at'  => now()
-            ]);
+            $env->update(['last_deployed_at' => now()]);
         } catch (\Exception $e) {
             $deploymentLog->update([
                 'status'                => 'failed',

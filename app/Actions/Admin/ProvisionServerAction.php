@@ -19,7 +19,9 @@ class ProvisionServerAction
                 'ssh_port' => $data['ssh_port'],
                 'environment' => $data['environment'],
                 'description' => $data['description'] ?? null,
-                'status' => 'active'
+                'status' => 'active',
+                'ssh_user'        => $data['ssh_user'],
+                'ssh_private_key' => $data['ssh_private_key'] ?? null,
             ]);
 
             AuditLogger::log(new AuditLogData(

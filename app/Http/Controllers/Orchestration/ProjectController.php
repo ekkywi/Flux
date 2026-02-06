@@ -68,7 +68,7 @@ class ProjectController extends Controller
 
         $availableServers = Server::orderBy('name')->get();
 
-        return view('console.project.show', [
+        return view('console.projects.show', [
             'page_title'    => $project->name . ' // Control Panel',
             'project'       => $project,
             'servers'       => $availableServers,
@@ -82,39 +82,29 @@ class ProjectController extends Controller
         ]);
 
         try {
-            $updatedEnv = $this->projectService->assignServer(
+            $this->projectService->assignServer(
                 $environment->id,
                 $request->server_id
             );
 
-            return response()->json([
-                'status'    => 'success',
-                'message'   => 'Server assigned and infrastructure initialized!',
-                'data'      => $updatedEnv
-            ]);
+            return redirect()->route('console.projects.show', $environment->project_id)
+                ->with('success', 'Infrastructure Node successfully linked!');
         } catch (\Exception $e) {
-            return response()->json([
-                'status'    => 'error',
-                'message'   => 'Failed to assign server: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()
+                ->with('error', 'Failed to link node: ' . $e->getMessage());
         }
     }
 
     public function deploy(ProjectEnvironment $environment)
     {
         if (!$environment->server_app_id) {
-            return response()->json([
-                'status'    => 'error',
-                'message'   => 'Cannot deploy: No server assigned to this environment.'
-            ], 422);
+            return redirect()->back()
+                ->with('error', 'Cannot deploy: No server assigned to this environment.');
         }
 
         DeployProjectJob::dispatch($environment);
 
-        return response()->json([
-            'status'    => 'success',
-            'message'   => 'Deployment dispatched! Flux is working in the background.',
-            'log_url'   => "/api/environments/{$environment->id}/logs/latest"
-        ]);
+        return redirect()->back()
+            ->with('success', 'Deployment dispatched! Flux is orchestrating the containers in the background.');
     }
 }

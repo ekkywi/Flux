@@ -55,6 +55,33 @@ services:
     networks:
       - flux-network
 
+  flux-reverb:
+    build: .
+    container_name: flux-reverb
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    networks:
+      - flux-network
+    depends_on:
+      - flux-app
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080 --debug
+
+  flux-worker:
+    build: .
+    container_name: flux-worker
+    restart: always
+    volumes:
+      - .:/app
+    networks:
+      - flux-network
+    depends_on:
+      - flux-app
+      - flux-redis
+    command: php artisan queue:work
+
 networks:
   flux-network:
     driver: bridge

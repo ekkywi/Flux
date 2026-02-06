@@ -16,7 +16,7 @@ class SystemSetting extends Model
         'last_rotated_at',
     ];
 
-    protected $cast = [
+    protected $casts = [
         'private_key' => 'encrypted',
         'last_rotated_at' => 'datetime',
     ];

@@ -37,6 +37,7 @@ class ServerManagementController extends Controller
             'ssh_user'      => 'required|string|max:50',
             'environment'   => 'required|in:production,staging,development',
             'description'   => 'nullable|string|max:500',
+            'ssh_private_key' => 'nullable|string',
         ]);
 
         $provisionServer->execute($validate, auth()->id());
@@ -53,6 +54,7 @@ class ServerManagementController extends Controller
             'ssh_user'      => 'required|string|max:50',
             'environment'   => 'required|in:production,staging,development',
             'description'   => 'nullable|string|max:500',
+            'ssh_private_key' => 'nullable|string',
         ]);
 
         $updateServer->execute($server, $validate, auth()->id());

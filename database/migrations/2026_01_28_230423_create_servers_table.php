@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('ip_address');
             $table->integer('ssh_port')->default(22);
             $table->string('ssh_user')->default('flux');
+            $table->text('ssh_private_key')->nullable();
             $table->enum('status', ['active', 'inactive', 'maintenance', 'error'])->default('active');
             $table->enum('environment', ['production', 'staging', 'development'])->default('development');
             $table->text('description')->nullable();
