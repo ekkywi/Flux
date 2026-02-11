@@ -15,8 +15,13 @@ class Project extends Model
     protected $fillable = [
         'name',
         'repository_url',
-        'default_branch',
+        'branch',
+        'status',
         'description',
+    ];
+
+    protected $casts = [
+        'status' => 'string',
     ];
 
     public function members(): BelongsToMany

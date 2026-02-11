@@ -43,6 +43,9 @@ Route::middleware('auth')->group(function () {
 
         // Project Management
         Route::resource('projects', ProjectController::class);
+
+        // Fetch Git Branch
+        Route::post('/projects/fetch-branches', [ProjectController::class, 'fetchBranches'])->name('projects.fetch-branches');
     });
 
     // ====================================================

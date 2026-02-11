@@ -1,135 +1,103 @@
 @extends("layouts.app")
-@section("title", "Project Console")
-@section("page_title", "Deployment Matrix")
+@section("title", "Projects")
+@section("page_title", "Projects")
+@section("page_subtitle", "Manage your repositories and deployments.")
+
+{{-- Tombol Aksi di Header Kanan --}}
+@section("actions")
+    <a class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-600/40 transform active:scale-95" href="{{ route("console.projects.create") }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
+        </svg>
+        Initialize Project
+    </a>
+@endsection
 
 @section("content")
-    <div class="space-y-8 pb-20 text-slate-900">
 
-        {{-- 1. NOTIFICATION SYSTEM --}}
-        @if (session("success") || session("error"))
-            <div class="fixed top-4 right-4 z-[60] {{ session("success") ? "bg-emerald-500" : "bg-rose-500" }} text-white px-6 py-3 rounded-2xl shadow-2xl animate-bounce">
-                <p class="text-xs font-black uppercase tracking-widest">
-                    {{ session("success") ?? session("error") }}
-                </p>
-            </div>
-        @endif
-
-        {{-- 2. STREAMLINED HEADER (Flux Style) --}}
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-2">
-            <div class="space-y-1">
-                <div class="flex items-center gap-2 text-indigo-600 mb-1">
-                    <div class="h-1 w-6 bg-indigo-600 rounded-full"></div>
-                    <span class="text-[9px] font-black uppercase tracking-[0.2em]">Deployment Protocol</span>
+    {{-- Control Bar --}}
+    <div class="sticky top-0 z-30 mb-8 flex flex-col gap-4 rounded-2xl bg-white/80 p-2 backdrop-blur-xl border border-zinc-200 shadow-sm md:flex-row md:items-center md:justify-between transition-all">
+        <div class="flex flex-1 items-center gap-2">
+            <div class="relative flex-1 md:max-w-md group">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="h-4 w-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                    </svg>
                 </div>
-                <h1 class="text-3xl font-black tracking-tight text-slate-900">Project Matrix</h1>
-                <p class="text-xs text-slate-500 font-medium">
-                    Orchestrating <span class="text-indigo-600 font-bold">{{ $projects->count() }} active repositories</span> within the network.
-                </p>
+                <input class="block w-full rounded-xl border-0 bg-zinc-100/50 py-2.5 pl-10 pr-3 text-sm text-zinc-900 placeholder:text-zinc-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all shadow-inner font-medium" placeholder="Search repositories..." type="text">
             </div>
+            <button class="flex items-center gap-2 px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                </svg>
+                Filter
+            </button>
+        </div>
+        <div class="hidden md:flex items-center gap-2 border-l border-zinc-200 pl-4 ml-2">
+            <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">View</span>
+            <button class="p-2 rounded-lg bg-white text-blue-600 shadow-sm ring-1 ring-zinc-200"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                </svg></button>
+        </div>
+    </div>
 
-            {{-- Compact Stats & Actions --}}
-            <div class="flex items-center gap-4 px-5 py-2.5 bg-white border border-slate-200 rounded-xl shadow-sm">
-                {{-- Stat 1 --}}
-                <div class="text-center min-w-[50px]">
-                    <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Total</span>
-                    <span class="text-sm font-black text-slate-900">{{ $projects->count() }}</span>
-                </div>
-                <div class="w-px h-6 bg-slate-100"></div>
-
-                {{-- Stat 2 --}}
-                <div class="text-center min-w-[50px]">
-                    <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Healthy</span>
-                    <span class="text-sm font-black text-emerald-600">{{ $projects->count() }}</span> {{-- Logic health check bisa ditambahkan nanti --}}
-                </div>
-                <div class="w-px h-6 bg-slate-100"></div>
-
-                {{-- Action Button --}}
-                {{-- Kita arahkan ke Route Create Wizard yang sudah kita buat --}}
-                <a class="px-4 py-1.5 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-indigo-600 transition-all shadow-md flex items-center gap-2" href="{{ route("console.projects.create") }}">
-                    + Initialize
-                </a>
-            </div>
+    {{-- Grid Project --}}
+    <div class="space-y-4">
+        <div class="flex items-center justify-between px-2">
+            <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Active Repositories ({{ $projects->count() }})</h3>
         </div>
 
-        {{-- 3. PROJECT GRID (Tetap Grid karena Project lebih cocok Card daripada Table) --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             @forelse ($projects as $project)
-                {{-- CARD MODULE (FULL CLICKABLE) --}}
-                <a class="group relative bg-white rounded-[2rem] border border-slate-200 hover:border-indigo-500 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 overflow-hidden flex flex-col h-full cursor-pointer" href="{{ route("console.projects.show", $project) }}">
+                <a class="group relative flex flex-col justify-between rounded-3xl bg-white p-6 shadow-sm border border-zinc-200 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 overflow-hidden" href="{{ route("console.projects.show", $project) }}">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
-                    {{-- Card Header --}}
-                    <div class="p-6 pb-0 flex justify-between items-start">
-                        <div class="h-14 w-14 rounded-2xl bg-slate-50 border border-slate-100 text-slate-900 flex items-center justify-center font-black text-xl group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-500 transition-colors shadow-sm">
-                            {{ substr($project->name, 0, 1) }}
+                    <div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="h-12 w-12 rounded-2xl bg-zinc-50 border border-zinc-100 flex items-center justify-center text-lg font-black text-zinc-700 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110 transition-all duration-300 shadow-sm relative z-10">
+                                {{ substr($project->name, 0, 1) }}
+                            </div>
+                            <div class="px-3 py-1 rounded-full bg-cyan-50 border border-cyan-100 text-[10px] font-bold text-cyan-600 uppercase tracking-wide group-hover:bg-cyan-100 transition-colors">
+                                Active
+                            </div>
                         </div>
 
-                        <div class="flex items-center gap-2 px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Active</span>
-                        </div>
-                    </div>
+                        <h4 class="text-xl font-bold text-zinc-900 group-hover:text-blue-600 transition-colors tracking-tight">{{ $project->name }}</h4>
+                        <p class="text-xs font-mono text-zinc-400 mt-1 truncate">{{ $project->id }}</p>
 
-                    {{-- Card Content --}}
-                    <div class="p-6 flex-1">
-                        <h3 class="text-xl font-black text-slate-900 tracking-tight mb-1 group-hover:text-indigo-600 transition-colors">
-                            {{ $project->name }}
-                        </h3>
-                        <div class="text-[10px] font-mono text-slate-400 mb-4 truncate">
-                            ID: {{ $project->id }}
-                        </div>
-
-                        <div class="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 group-hover:bg-white group-hover:border-indigo-100 transition-colors">
-                            <svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="mt-4 flex items-center gap-2 text-xs font-medium text-zinc-500 bg-zinc-50 w-fit px-3 py-1.5 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all border border-transparent group-hover:border-zinc-100">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                             </svg>
-                            <span class="text-[10px] font-bold text-indigo-600 truncate font-mono w-full">
-                                {{ str_replace(["https://", "http://", "github.com/", ".git"], "", $project->repository_url) }}
-                            </span>
+                            <span class="truncate max-w-[150px]">{{ str_replace(["https://", "http://", "github.com/", ".git"], "", $project->repository_url) }}</span>
                         </div>
                     </div>
 
-                    {{-- Metrics Strip --}}
-                    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 grid grid-cols-2 gap-4 group-hover:bg-slate-50/80">
-                        <div>
-                            <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest">Environments</span>
-                            <span class="block text-sm font-black text-slate-800">{{ $project->environments->count() }} <span class="text-[10px] text-slate-400 font-medium">Nodes</span></span>
+                    <div class="mt-8 pt-4 border-t border-zinc-50 flex items-center justify-between relative z-10">
+                        <div class="flex -space-x-2">
+                            <div class="h-8 w-8 rounded-full border-2 border-white bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-600">
+                                {{ substr(optional($project->owner->first())->name ?? "S", 0, 1) }}
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest">Owner</span>
-                            <span class="block text-sm font-black text-slate-800 truncate">
-                                {{ optional($project->owner->first())->name ?? "SYSTEM" }}
-                            </span>
+                        <div class="text-xs font-bold text-zinc-400 group-hover:text-blue-600 transition-colors flex items-center gap-1">
+                            View Details
+                            <svg class="w-3 h-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                            </svg>
                         </div>
                     </div>
-
-                    {{-- Hover Indicator --}}
-                    <div class="absolute inset-x-0 bottom-0 h-1 bg-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
                 </a>
-
             @empty
-                {{-- EMPTY STATE --}}
-                <div class="col-span-3 flex flex-col items-center justify-center py-24 border-2 border-dashed border-slate-200 rounded-[2.5rem] bg-slate-50/50">
-                    <div class="h-20 w-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-xl shadow-slate-200/50">
-                        <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="col-span-full py-20 text-center rounded-3xl border-2 border-dashed border-zinc-200 bg-zinc-50/50">
+                    <div class="mx-auto h-16 w-16 bg-white rounded-full flex items-center justify-center text-zinc-300 mb-4 shadow-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                         </svg>
                     </div>
-                    <h3 class="text-xl font-black text-slate-900 tracking-tight mb-2">NO SIGNALS DETECTED</h3>
-                    <p class="text-xs text-slate-500 font-medium mb-8">The matrix is empty. Initialize a new deployment target to begin.</p>
-                    <a class="px-8 py-3 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg transition-all" href="{{ route("console.projects.create") }}">
-                        Initialize Target
-                    </a>
+                    <h3 class="text-zinc-900 font-bold text-lg">No Projects Found</h3>
+                    <p class="text-zinc-500 text-sm mt-1 mb-6">Initialize a new repository to get started.</p>
                 </div>
             @endforelse
         </div>
     </div>
-
-    {{-- Script untuk Toast Auto-Hide --}}
-    @push("scripts")
-        <script>
-            setTimeout(() => {
-                document.querySelectorAll('.animate-bounce').forEach(t => t.style.display = 'none');
-            }, 4000);
-        </script>
-    @endpush
 @endsection

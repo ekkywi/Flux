@@ -1,9 +1,14 @@
 FROM dunglas/frankenphp:1-php8.4-alpine
 
-# 1. Install Node & NPM (Sudah benar)
-RUN apk add --no-cache nodejs npm
+RUN apk add --no-cache \
+    nodejs \
+    npm \
+    git \
+    openssh-client \
+    zsh \
+    nano \
+    shadow
 
-# 2. Install PHP Extensions (Sudah benar)
 RUN install-php-extensions \
     pcntl \
     pdo_pgsql \
@@ -14,30 +19,23 @@ RUN install-php-extensions \
     zip \
     opcache
 
-# 3. Ambil Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# 4. TRICK: Copy composer files dulu agar Docker bisa caching layer vendor
-# Ini mempercepat build jika kode berubah tapi vendor tidak.
 COPY composer.json composer.lock ./
 
-# 5. Jalankan install (Pastikan phpseclib sudah ada di composer.json)
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-scripts --no-autoloader --no-interaction
 
-# 6. Copy seluruh project
 COPY . .
 
-# 7. Membuat folder dan set permission
 RUN mkdir -p storage/app/archives/infrastructure \
              storage/app/archives/identity \
              storage/app/archives/projects && \
     chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
 
-# 8. Generate Autoloader & Atur Izin
 RUN composer dump-autoload --optimize && \
     chown -R www-data:www-data storage bootstrap/cache
 

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Actions\Project\CreateProjectAction;
 use App\Models\Project;
+use Illuminate\Http\Request;
+use App\Services\Infrastructure\VersionControl\GitService;
 use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
@@ -26,6 +28,18 @@ class ProjectController extends Controller
     public function create()
     {
         return view('console.projects.create');
+    }
+
+    public function fetchBranches(Request $request, GitService $gitService)
+    {
+        $request->validate(['repository_url' => 'required|url']);
+
+        try {
+            $branches = $gitService->getRemoteBranches($request->input('repository_url'));
+            return response()->json(['branches' => $branches]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
     }
 
     public function store(StoreProjectRequest $request, CreateProjectAction $action)

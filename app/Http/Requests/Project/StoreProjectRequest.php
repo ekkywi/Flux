@@ -16,6 +16,7 @@ class StoreProjectRequest extends FormRequest
         return [
             'name'              => ['required', 'string', 'max:255'],
             'repository_url'    => ['required', 'url'],
+            'branch'            => ['required', 'string', 'max:255'],
             'description'       => ['nullable', 'string'],
         ];
     }
@@ -23,7 +24,8 @@ class StoreProjectRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'repository_url.url'    => 'Repository link must be valid.'
+            'repository_url.url'    => 'Repository link must be valid.',
+            'branch.requireq'       => 'Please select a target branch for deployment.'
         ];
     }
 }

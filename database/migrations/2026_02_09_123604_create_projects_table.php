@@ -12,7 +12,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('repository_url');
-            $table->string('default_branch')->default('main');
+            $table->string('branch')->default('main');
+            $table->string('status')->default('active');
             $table->text('description')->nullable();
             $table->timestamps();
         });
