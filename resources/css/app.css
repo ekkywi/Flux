@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* ========================================= */
+/* 🛠️ ALPINE JS ANTI-FOUC (X-CLOAK)         */
+/* Ini wajib agar Grid & List tidak muncul barengan */
+/* ========================================= */
+[x-cloak] {
+    display: none !important;
+}
+
 /* 1. Konfigurasi Theme */
 @theme {
     /* Font */

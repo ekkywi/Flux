@@ -7,14 +7,25 @@ use App\Enums\AuditSeverity;
 use App\Services\Core\AuditLogger;
 use App\DTOs\AuditLogData;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash; // 👈 Wajib import ini
 
 class UpdateUserAction
 {
     public function execute(User $user, array $data, $actorId): User
     {
         return DB::transaction(function () use ($user, $data, $actorId) {
+
+            if (!empty($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
+            } else {
+                unset($data['password']);
+            }
+
+
             $before = $user->getOriginal();
+
             $user->update($data);
+
             $after = $user->getChanges();
 
             unset($after['updated_at'], $after['password'], $after['remember_token']);
@@ -31,6 +42,7 @@ class UpdateUserAction
                     target_id: $user->id,
                     metadata: [
                         'target_user_email' => $user->email,
+                        'changes_count'     => count($after),
                         'before' => $originalValues,
                         'after'  => $after,
                     ]

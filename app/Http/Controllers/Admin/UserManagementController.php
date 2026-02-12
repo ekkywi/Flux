@@ -52,6 +52,7 @@ class UserManagementController extends Controller
             'department' => 'required|string',
             'role'       => 'required|string',
             'is_active'  => 'required|boolean',
+            'password'   => 'nullable|string|min:8',
         ]);
 
         try {

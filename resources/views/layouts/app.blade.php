@@ -4,28 +4,31 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta content="{{ csrf_token() }}" name="csrf-token">
     <title>@yield("title", "Flux Console") - Flux</title>
 
+    {{-- Fonts --}}
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
+    {{-- Scripts & Styles --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(["resources/css/app.css", "resources/js/app.js", "resources/css/flux.css", "resources/js/flux.js"])
 </head>
 
 <body class="h-full overflow-hidden relative">
 
-    <div class="bg-noise"></div>
-    <div class="fixed top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none z-0"></div>
-    <div class="fixed bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none z-0"></div>
-
+    {{-- APP CONTAINER --}}
     <div class="flex h-full w-full relative z-10 lg:p-4 gap-4" id="app-container">
 
+        {{-- ================= SIDEBAR (Midnight Blue) ================= --}}
         <aside class="hidden lg:flex w-72 flex-col justify-between rounded-[2rem] bg-[#0B1120] text-white p-6 shadow-2xl shadow-blue-900/20 relative overflow-hidden shrink-0 border border-blue-900/30">
+            {{-- Inner Glow (Static) --}}
             <div class="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none"></div>
 
             <div class="relative z-10 flex flex-col h-full">
+                {{-- Brand --}}
                 <div class="flex items-center gap-3 mb-8 px-2 flex-shrink-0">
                     <div class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/40">
                         <svg class="h-5 w-5 text-white" fill="none" stroke-width="2.5" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,6 +41,7 @@
                     </div>
                 </div>
 
+                {{-- Navigation --}}
                 <nav class="space-y-1.5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
 
                     {{-- 1. CONSOLE AREA --}}
@@ -109,7 +113,6 @@
                                     <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                                 </svg>
                             </button>
-                            {{-- Submenu Items --}}
                             <div class="{{ request()->routeIs("admin.cold-storage.*") ? "" : "hidden" }} space-y-1 pl-4 relative before:absolute before:left-6 before:top-0 before:bottom-0 before:w-px before:bg-blue-900/50" id="cold-storage-submenu">
                                 @foreach (["infrastructure" => "Infrastructure", "identity" => "Identity Vault", "projects" => "Project Archives"] as $type => $label)
                                     <a class="block pl-8 py-2 text-xs font-bold uppercase tracking-widest transition-all {{ request()->route("type") == $type ? "text-blue-400" : "text-zinc-500 hover:text-zinc-300" }}" href="{{ route("admin.cold-storage.index", ["type" => $type]) }}">
@@ -155,19 +158,28 @@
             </div>
         </aside>
 
-        <main class="flex-1 overflow-hidden flex flex-col bg-white/70 border-x border-white/60 shadow-2xl shadow-zinc-200/50 backdrop-blur-xl lg:rounded-[2rem] lg:border-y relative ring-1 ring-zinc-200/50">
+        {{-- ================= MAIN CONTENT (Lightweight Mode) ================= --}}
+        {{-- Optimasi: bg-white/95 (bukan /70), hapus backdrop-blur-xl --}}
+        <main class="flex-1 overflow-hidden flex flex-col bg-white/95 border-x border-white/60 shadow-2xl shadow-zinc-200/50 lg:rounded-[2rem] lg:border-y relative ring-1 ring-zinc-200/50">
 
-            <div class="lg:hidden flex items-center justify-between p-4 border-b border-zinc-200 bg-white/80 backdrop-blur-md sticky top-0 z-30">
+            {{-- Mobile Header (Solid BG) --}}
+            <div class="lg:hidden flex items-center justify-between p-4 border-b border-zinc-200 bg-white sticky top-0 z-30">
                 <div class="flex items-center gap-2">
-                    <div class="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center text-white"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
-                        </svg></div><span class="font-bold text-zinc-900 text-lg">Flux</span>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-zinc-900 text-lg">Flux</span>
                 </div>
-                <button class="p-2 text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors" onclick="toggleMobileMenu()"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button class="p-2 text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors" onclick="toggleMobileMenu()">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M4 6h16M4 12h16m-7 6h7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-                    </svg></button>
+                    </svg>
+                </button>
             </div>
 
+            {{-- Main Content Scrollable --}}
             <div class="flex-1 overflow-y-auto p-4 lg:p-10 scroll-smooth relative" id="main-scroll">
 
                 <header class="mb-8 flex flex-col gap-6 md:flex-row md:items-start md:justify-between animate-fade-in-up relative z-40">
@@ -181,6 +193,7 @@
 
                         <div class="h-8 w-px bg-zinc-200 mx-1 hidden md:block"></div>
 
+                        {{-- Notifications --}}
                         <div class="relative" id="notif-container">
                             <button class="relative p-2.5 rounded-full bg-white border border-zinc-200 text-zinc-400 hover:text-blue-600 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/10 transition-all group active:scale-95" onclick="toggleDropdown('notif-dropdown')">
                                 <svg class="h-6 w-6 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,7 +206,6 @@
                                     </span>
                                 @endif
                             </button>
-                            {{-- Notif Dropdown --}}
                             <div class="hidden absolute top-full right-0 mt-3 w-80 rounded-2xl bg-white border border-zinc-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden transition-all origin-top-right transform scale-95 opacity-0 z-[100]" id="notif-dropdown">
                                 <div class="px-5 py-4 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/80 backdrop-blur">
                                     <span class="text-sm font-bold text-zinc-900">Inbox</span>
@@ -223,6 +235,7 @@
                             </div>
                         </div>
 
+                        {{-- User Profile --}}
                         <div class="relative" id="user-container">
                             <button class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full bg-white border border-zinc-200 hover:border-blue-300 hover:shadow-md transition-all active:scale-95 group" onclick="toggleDropdown('user-dropdown')">
                                 <img alt="" class="h-8 w-8 rounded-full border border-zinc-200" src="https://ui-avatars.com/api/?name={{ Auth::user()->name ?? "Admin" }}&background=random&color=2563eb&background=EBF4FF">
@@ -257,6 +270,7 @@
         </main>
     </div>
 
+    {{-- Mobile Sidebar --}}
     <div class="fixed inset-0 bg-[#0B1120]/80 backdrop-blur-sm z-40 hidden transition-opacity opacity-0" id="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
     <aside class="fixed top-0 left-0 bottom-0 w-72 bg-[#0B1120] text-white z-50 transform -translate-x-full transition-transform duration-300 ease-out shadow-2xl p-6 flex flex-col border-r border-blue-900/30" id="mobile-sidebar">
         <button class="absolute top-4 right-4 text-zinc-400" onclick="toggleMobileMenu()"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,39 +281,108 @@
             <nav class="space-y-2">
                 <a class="block text-sm font-bold text-white" href="{{ route("console.dashboard") }}">Dashboard</a>
                 <a class="block text-sm font-bold text-white" href="{{ route("console.projects.index") }}">Projects</a>
-                {{-- Add mobile admin links here if needed --}}
             </nav>
         </div>
     </aside>
 
-    <script>
-        // SweetAlert Toast
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 4000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer);
-                toast.addEventListener('mouseleave', Swal.resumeTimer);
+    {{-- 
+    =========================================
+    FLUX TOAST NOTIFICATION SYSTEM
+    =========================================
+    --}}
+
+    @if (session("success") || session("error") || session("warning"))
+        <div @mouseenter="pause()" @mouseleave="resume()" class="fixed top-6 right-6 z-[150] w-full max-w-sm" style="display: none;" x-data="{
+            show: true,
+            timer: null,
+            progress: 100,
+            init() {
+                // Auto-close logic
+                this.timer = setInterval(() => {
+                    this.progress -= 1;
+                    if (this.progress <= 0) {
+                        this.close();
+                    }
+                }, 50); // 50ms * 100 steps = 5000ms (5 detik)
+            },
+            close() {
+                this.show = false;
+                clearInterval(this.timer);
+            },
+            pause() {
+                clearInterval(this.timer);
+            },
+            resume() {
+                this.timer = setInterval(() => {
+                    this.progress -= 1;
+                    if (this.progress <= 0) {
+                        this.close();
+                    }
+                }, 50);
             }
-        });
-        @if (session("success"))
-            Toast.fire({
-                icon: 'success',
-                title: 'Success',
-                text: "{{ session("success") }}"
-            });
-        @endif
-        @if (session("error"))
-            Toast.fire({
-                icon: 'error',
-                title: 'Error',
-                text: "{{ session("error") }}"
-            });
-        @endif
-    </script>
+        }" x-show="show" x-transition:enter-end="opacity-100 translate-y-0 translate-x-0 scale-100" x-transition:enter-start="opacity-0 translate-y-2 translate-x-2 scale-95" x-transition:enter="transition ease-out duration-300" x-transition:leave-end="opacity-0 translate-y-2 scale-95" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave="transition ease-in duration-200">
+
+            {{-- CONTAINER UTAMA --}}
+            <div class="relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur-xl border border-zinc-200 shadow-2xl shadow-zinc-200/50 p-4 pr-12">
+
+                {{-- 1. PROGRESS BAR (Garis Waktu di Bawah) --}}
+                <div class="absolute bottom-0 left-0 h-1 bg-zinc-100 w-full">
+                    <div :style="'width: ' + progress + '%'" class="h-full transition-all duration-75 ease-linear {{ session("error") ? "bg-rose-500" : (session("warning") ? "bg-amber-500" : "bg-blue-600") }}"></div>
+                </div>
+
+                <div class="flex items-start gap-4">
+
+                    {{-- 2. ICON WITH GLOW EFFECT --}}
+                    <div class="relative flex-shrink-0">
+                        {{-- Glow Background --}}
+                        <div class="absolute inset-0 rounded-full blur-lg opacity-40 {{ session("error") ? "bg-rose-400" : (session("warning") ? "bg-amber-400" : "bg-blue-400") }}"></div>
+
+                        {{-- Icon Container --}}
+                        <div class="relative h-10 w-10 rounded-xl flex items-center justify-center border {{ session("error") ? "bg-rose-50 border-rose-100 text-rose-600" : (session("warning") ? "bg-amber-50 border-amber-100 text-amber-600" : "bg-blue-50 border-blue-100 text-blue-600") }}">
+                            @if (session("error"))
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                </svg>
+                            @elseif (session("warning"))
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                </svg>
+                            @else
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
+                                </svg>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- 3. TEXT CONTENT --}}
+                    <div class="flex-1 min-w-0 pt-0.5">
+                        <h3 class="text-sm font-black uppercase tracking-wide text-zinc-900">
+                            @if (session("error"))
+                                System Alert
+                            @elseif(session("warning"))
+                                Attention Needed
+                            @else
+                                Operation Successful
+                            @endif
+                        </h3>
+                        <p class="text-xs font-medium text-zinc-500 mt-1 leading-relaxed">
+                            {{ session("success") ?? (session("error") ?? session("warning")) }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- 4. CLOSE BUTTON --}}
+                <button @click="close()" class="absolute top-2 right-2 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-lg transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+
+    @stack("scripts")
 </body>
 
 </html>
