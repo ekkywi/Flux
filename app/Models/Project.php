@@ -49,6 +49,14 @@ class Project extends Model
             ->withTimestamps();
     }
 
+    public function member(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'project_members')
+            ->using(ProjectMember::class)
+            ->withPivot('id', 'role')
+            ->withTimestamps();
+    }
+
     public function getShortRepoAttributes(): string
     {
         $path = parse_url($this->repository_url, PHP_URL_PATH);

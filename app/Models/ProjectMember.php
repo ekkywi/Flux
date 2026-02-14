@@ -17,6 +17,12 @@ class ProjectMember extends Pivot
         'role'
     ];
 
+    public $timestamps = true;
+
+    protected $casts = [
+        'role' => 'string',
+    ];
+
     public function isManager(): bool
     {
         return in_array($this->role, ['owner', 'manager']);

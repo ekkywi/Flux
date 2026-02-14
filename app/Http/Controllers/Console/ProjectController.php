@@ -57,7 +57,7 @@ class ProjectController extends Controller
     {
         $this->authorize('view', $project);
 
-        $project->load(['environments', 'members']);
+        $project->load(['members', 'owner', 'environments']);
 
         return view('console.projects.show', compact('project'));
     }

@@ -15,9 +15,14 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\Admin\ServerManagementController;
 use App\Http\Controllers\Admin\ColdStorageController;
+use App\Http\Controllers\Admin\ProjectMemberController;
+
+// --- SECURITY CONTROLLERS ---
 use App\Http\Controllers\Security\MasterKeyController;
 
-// --- GUEST ONLY ---
+// ====================================================
+// GUEST ONLY (Login/Register)
+// ====================================================
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
@@ -26,7 +31,9 @@ Route::middleware('guest')->group(function () {
     Route::post('register', [RegisteredUserController::class, 'store']);
 });
 
-// --- AUTH REQUIRED ---
+// ====================================================
+// AUTH REQUIRED (Global)
+// ====================================================
 Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
@@ -49,7 +56,20 @@ Route::middleware('auth')->group(function () {
     });
 
     // ====================================================
-    // 2. ADMIN AREA (System Administrator Only)
+    // 2. PROJECT MEMBER MANAGEMENT (Shared Access)
+    // Akses: Owner (User Biasa) & SysAdmin
+    // URL Prefix: /projects/{project}/members
+    // Route Name: projects.members.xxxxx
+    // ====================================================
+    Route::prefix('projects/{project}/members')->name('projects.members.')->group(function () {
+        Route::get('/search', [ProjectMemberController::class, 'search'])->name('search');
+        Route::post('/', [ProjectMemberController::class, 'store'])->name('store');
+        Route::patch('/{user}', [ProjectMemberController::class, 'update'])->name('update');
+        Route::delete('/{user}', [ProjectMemberController::class, 'destroy'])->name('destroy');
+    });
+
+    // ====================================================
+    // 3. ADMIN AREA (System Administrator Only)
     // URL Prefix: /admin/.....
     // Route Name: admin.xxxxx
     // ====================================================
@@ -107,7 +127,6 @@ Route::middleware('auth')->group(function () {
 
     // Redirect root
     Route::get('/', function () {
-        // If logged in, throw it into the Console Dashboard
         return Auth::check() ? redirect()->route('console.dashboard') : redirect()->route('login');
     });
 });
