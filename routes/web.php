@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\Admin\ServerManagementController;
 use App\Http\Controllers\Admin\ColdStorageController;
+use App\Http\Controllers\Admin\EnvironmentController;
 use App\Http\Controllers\Admin\ProjectMemberController;
 
 // --- SECURITY CONTROLLERS ---
@@ -53,6 +54,12 @@ Route::middleware('auth')->group(function () {
 
         // Fetch Git Branch
         Route::post('/projects/fetch-branches', [ProjectController::class, 'fetchBranches'])->name('projects.fetch-branches');
+
+        // Project Environment
+        Route::prefix('projects/{project}/environments')->name('projects.environments.')->group(function () {
+            Route::post('/', [EnvironmentController::class, 'store'])->name('store');
+            Route::delete('/{environment}', [EnvironmentController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // ====================================================

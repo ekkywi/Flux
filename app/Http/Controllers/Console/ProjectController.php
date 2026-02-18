@@ -16,10 +16,10 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role === 'system_admin') {
-            $projects = Project::with('owner')->latest()->get();
+        if ($user->role === 'System Administrator') {
+            $projects = Project::with(['environments', 'owner'])->latest()->get();
         } else {
-            $projects = $user->projects()->with('owner')->latest()->get();
+            $projects = $user->projects()->with(['environments', 'owner'])->latest()->get();
         }
 
         return view('console.projects.index', compact('projects'));
@@ -60,6 +60,23 @@ class ProjectController extends Controller
         $project->load(['members', 'owner', 'environments']);
 
         return view('console.projects.show', compact('project'));
+    }
+
+    public function update(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+
+        $validated = $request->validate([
+            'name'              => 'required|string|max:255',
+            'repository_url'    => 'required|url',
+            'branch'            => 'required|string|max:50',
+            'status'            => 'required|in:active,maintenance,archived',
+            'description'       => 'nullable|string|max:500'
+        ]);
+
+        $project->update($validated);
+
+        return back()->with('success', 'Project configuration updated');
     }
 
     public function destroy(Project $project)

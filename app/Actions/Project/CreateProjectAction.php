@@ -24,9 +24,9 @@ class CreateProjectAction
             $project->members()->attach($creator->id, ['role' => 'owner']);
 
             $project->environments()->create([
-                'name'      => 'Development',
+                'name'      => 'Production',
                 'branch'    => $data['branch'],
-                'type'      => 'development',
+                'type'      => 'production',
             ]);
 
             return $project;
