@@ -154,14 +154,41 @@
                                                 </div>
                                             @endif
 
-                                            {{-- B. Data Changes (Diff) --}}
+                                            {{-- 🔥 B.1. Data Changes (Format: 'changes' => ['field' => ['from' => x, 'to' => y]]) --}}
+                                            {{-- INI LOGIC BARU UNTUK MENANGANI FORMAT PROJECT OBSERVER --}}
+                                            @if (isset($log->metadata["changes"]) && is_array($log->metadata["changes"]))
+                                                <div class="bg-zinc-50 rounded-lg border border-zinc-200 p-2 space-y-1.5 mt-1 w-full max-w-lg">
+                                                    @foreach ($log->metadata["changes"] as $field => $change)
+                                                        <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-[10px] font-mono border-b border-zinc-100 last:border-0 pb-1 last:pb-0">
+                                                            <span class="font-bold text-zinc-400 uppercase w-24 shrink-0">{{ str_replace("_", " ", $field) }}</span>
+                                                            <div class="flex items-center gap-2 overflow-hidden">
+                                                                {{-- FROM --}}
+                                                                <span class="text-rose-500 line-through decoration-rose-200 truncate max-w-[100px]" title="{{ is_array($change["from"] ?? "") ? json_encode($change["from"]) : $change["from"] ?? "NULL" }}">
+                                                                    {{ is_array($change["from"] ?? "") ? "JSON" : $change["from"] ?? "NULL" }}
+                                                                </span>
+
+                                                                {{-- ARROW --}}
+                                                                <svg class="w-3 h-3 text-zinc-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                                                </svg>
+
+                                                                {{-- TO --}}
+                                                                <span class="text-emerald-600 font-bold truncate max-w-[150px]" title="{{ is_array($change["to"] ?? "") ? json_encode($change["to"]) : $change["to"] ?? "NULL" }}">
+                                                                    {{ is_array($change["to"] ?? "") ? "JSON" : $change["to"] ?? "NULL" }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+
+                                            {{-- B.2. Data Changes (Format Lama/Standard: 'before' & 'after') --}}
                                             @if (isset($log->metadata["before"]) && isset($log->metadata["after"]))
                                                 <div class="bg-zinc-50 rounded-lg border border-zinc-200 p-2 space-y-1.5 mt-1 w-full max-w-lg">
                                                     @foreach ($log->metadata["after"] as $field => $newValue)
                                                         @php
                                                             $oldValue = $log->metadata["before"][$field] ?? "NULL";
-                                                            $isJson = is_array($newValue);
-                                                            $newDisplay = $isJson ? json_encode($newValue) : $newValue;
+                                                            $newDisplay = is_array($newValue) ? json_encode($newValue) : $newValue;
                                                             $oldDisplay = is_array($oldValue) ? json_encode($oldValue) : $oldValue;
                                                         @endphp
                                                         <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-[10px] font-mono border-b border-zinc-100 last:border-0 pb-1 last:pb-0">
@@ -180,7 +207,8 @@
 
                                             {{-- C. General Info (Reason, Notes, etc) --}}
                                             @php
-                                                $exclude = ["before", "after", "target_user_email", "target_user_name", "username", "target_id", "target_type"];
+                                                // 🔥 UPDATE: Tambahkan 'changes' ke dalam exclude list agar tidak muncul 'JSON'
+                                                $exclude = ["before", "after", "changes", "target_user_email", "target_user_name", "username", "target_id", "target_type"];
                                                 $extras = collect($log->metadata)->except($exclude);
                                             @endphp
                                             @if ($extras->isNotEmpty())

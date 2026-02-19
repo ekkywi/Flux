@@ -43,7 +43,7 @@ class RejectAccessRequestAction
                     'target_user_email' => $targetUserEmail,
                     'target_user_name' => $targetUserName,
                     'action_taken' => $request->request_type === ApprovalType::ACCOUNT_REQUEST
-                        ? 'account_deleted' // Sekarang label ini jujur, akun benar-benar dihapus
+                        ? 'account_deleted'
                         : 'request_denied',
                 ]
             ));

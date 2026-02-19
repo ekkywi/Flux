@@ -21,6 +21,9 @@ use App\Http\Controllers\Admin\ProjectMemberController;
 // --- SECURITY CONTROLLERS ---
 use App\Http\Controllers\Security\MasterKeyController;
 
+// --- OTHER IMPORT ---
+use App\Models\Server; // <--- TAMBAHKAN INI
+
 // ====================================================
 // GUEST ONLY (Login/Register)
 // ====================================================
@@ -38,6 +41,14 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+    Route::prefix('internal')->name('internal.')->group(function () {
+        Route::get('/servers-list', function () {
+            return \App\Models\Server::where('status', 'active')
+                ->select('id', 'name', 'ip_address', 'description')
+                ->get();
+        })->name('servers-list');
+    });
 
     // ====================================================
     // 1. CONSOLE AREA (For Normal Users: Dev, QA, Manager)

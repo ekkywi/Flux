@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use GuzzleHttp\Pool;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +12,8 @@ class Environment extends Model
 
     protected $fillable = [
         'project_id',
+        'server_id',
+        'port',
         'name',
         'branch',
         'url',
@@ -27,5 +28,10 @@ class Environment extends Model
     public function isProduction(): bool
     {
         return $this->type === 'production';
+    }
+
+    public function server(): BelongsTo
+    {
+        return $this->belongsTo(Server::class);
     }
 }

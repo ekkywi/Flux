@@ -23,12 +23,6 @@ class CreateProjectAction
 
             $project->members()->attach($creator->id, ['role' => 'owner']);
 
-            $project->environments()->create([
-                'name'      => 'Production',
-                'branch'    => $data['branch'],
-                'type'      => 'production',
-            ]);
-
             return $project;
         });
     }

@@ -296,41 +296,110 @@ window.fetchEnvBranches = async function () {
 };
 
 window.openAddEnvModal = async function () {
-  const { value } = await fluxSwal.fire({
-    title: "Provision Node",
-    width: "500px",
-    html: `
-            <div class="flex flex-col gap-5 text-left">
-                <div><label class="text-[10px] font-bold text-zinc-400 uppercase">Name</label><input id="new-env-name" class="w-full px-3 py-2.5 border rounded-xl text-sm font-bold" placeholder="e.g. Staging"></div>
-                <div><label class="text-[10px] font-bold text-zinc-400 uppercase">Type</label><div class="grid grid-cols-3 gap-3 mt-1">
-                    <label class="cursor-pointer"><input type="radio" name="env_type" value="development" class="peer sr-only" checked><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-200 hover:bg-zinc-50">DEV</div></label>
-                    <label class="cursor-pointer"><input type="radio" name="env_type" value="staging" class="peer sr-only"><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-amber-50 peer-checked:text-amber-600 peer-checked:border-amber-200 hover:bg-zinc-50">STAGING</div></label>
-                    <label class="cursor-pointer"><input type="radio" name="env_type" value="production" class="peer sr-only"><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-rose-50 peer-checked:text-rose-600 peer-checked:border-rose-200 hover:bg-zinc-50">PROD</div></label>
-                </div></div>
-                <div><div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-zinc-400 uppercase">Branch</label><button type="button" id="btn-refresh-env-branch" class="p-1 border rounded bg-white hover:bg-zinc-50"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></button></div><div class="relative"><select id="new-env-branch" class="w-full px-3 py-2.5 border rounded-xl text-sm font-mono"><option value="${config.branch}">${config.branch} (Default)</option></select></div></div>
-            </div>
-        `,
-    showCancelButton: true,
-    confirmButtonText: "Provision",
-    didOpen: () => {
-      document
-        .getElementById("btn-refresh-env-branch")
-        .addEventListener("click", (e) => {
-          e.preventDefault();
-          fetchEnvBranches();
-        });
-    },
-    preConfirm: () => {
-      const n = document.getElementById("new-env-name").value;
-      if (!n) Swal.showValidationMessage("Name required");
-      return {
-        name: n,
-        type: document.querySelector('input[name="env_type"]:checked').value,
-        branch: document.getElementById("new-env-branch").value,
-      };
-    },
+  fluxSwal.fire({
+    title: "Loading Infrastructure...",
+    didOpen: () => Swal.showLoading(),
   });
-  if (value) submitForm(config.routes.envStore, "POST", value);
+
+  try {
+    // 2. Fetch Daftar Server
+    const response = await fetch("/internal/servers-list"); // Sesuaikan route langkah 1
+    const servers = await response.json();
+
+    // Jika tidak ada server tersedia
+    if (servers.length === 0) {
+      fluxSwal.fire(
+        "Error",
+        "No active servers found. Please contact System Admin.",
+        "error",
+      );
+      return;
+    }
+
+    // 3. Buat HTML Options untuk Dropdown
+    let serverOptions = servers
+      .map(
+        (s) =>
+          `<option value="${s.id}">[${s.description || "Server"}] ${s.name} (${s.ip_address})</option>`,
+      )
+      .join("");
+
+    // 4. Tampilkan Modal Form dengan Input Server
+    const { value } = await fluxSwal.fire({
+      title: "Provision Node",
+      width: "500px",
+      html: `
+                <div class="flex flex-col gap-5 text-left">
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase">Name</label>
+                        <input id="new-env-name" class="w-full px-3 py-2.5 border rounded-xl text-sm font-bold" placeholder="e.g. Staging">
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase">Type</label>
+                        <div class="grid grid-cols-3 gap-3 mt-1">
+                            <label class="cursor-pointer"><input type="radio" name="env_type" value="development" class="peer sr-only" checked><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-200 hover:bg-zinc-50">DEV</div></label>
+                            <label class="cursor-pointer"><input type="radio" name="env_type" value="staging" class="peer sr-only"><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-amber-50 peer-checked:text-amber-600 peer-checked:border-amber-200 hover:bg-zinc-50">STAGING</div></label>
+                            <label class="cursor-pointer"><input type="radio" name="env_type" value="production" class="peer sr-only"><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-rose-50 peer-checked:text-rose-600 peer-checked:border-rose-200 hover:bg-zinc-50">PROD</div></label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase">Target Server</label>
+                        <div class="relative">
+                            <select id="new-env-server" class="w-full px-3 py-2.5 border rounded-xl text-sm font-mono appearance-none bg-white">
+                                ${serverOptions}
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-[10px] font-bold text-zinc-400 uppercase">Branch</label>
+                            <button type="button" id="btn-refresh-env-branch" class="p-1 border rounded bg-white hover:bg-zinc-50"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></button>
+                        </div>
+                        <div class="relative">
+                            <select id="new-env-branch" class="w-full px-3 py-2.5 border rounded-xl text-sm font-mono">
+                                <option value="${config.branch}">${config.branch} (Default)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `,
+      showCancelButton: true,
+      confirmButtonText: "Provision",
+      didOpen: () => {
+        document
+          .getElementById("btn-refresh-env-branch")
+          .addEventListener("click", (e) => {
+            e.preventDefault();
+            fetchEnvBranches();
+          });
+      },
+      preConfirm: () => {
+        const n = document.getElementById("new-env-name").value;
+        const s = document.getElementById("new-env-server").value; // Ambil nilai Server ID
+
+        if (!n) Swal.showValidationMessage("Name required");
+        if (!s) Swal.showValidationMessage("Please select a server");
+
+        return {
+          name: n,
+          server_id: s, // 🔥 Kirim ke Backend
+          type: document.querySelector('input[name="env_type"]:checked').value,
+          branch: document.getElementById("new-env-branch").value,
+        };
+      },
+    });
+
+    if (value) submitForm(config.routes.envStore, "POST", value);
+  } catch (error) {
+    console.error(error);
+    fluxSwal.fire("Error", "Failed to fetch server list.", "error");
+  }
 };
 
 window.confirmDeleteEnv = function (id, name, type) {

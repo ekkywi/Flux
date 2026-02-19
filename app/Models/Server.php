@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Server extends Model
 {
@@ -23,4 +24,9 @@ class Server extends Model
     protected $cast = [
         'deleted_at' => 'datetime',
     ];
+
+    public function environments(): HasMany
+    {
+        return $this->hasMany(Environment::class);
+    }
 }

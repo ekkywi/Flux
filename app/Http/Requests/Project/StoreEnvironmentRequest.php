@@ -20,6 +20,7 @@ class StoreEnvironmentRequest extends FormRequest
             'name'      => ['required', 'string', 'max:50'],
             'type'      => ['required', Rule::in(['development', 'staging', 'production'])],
             'branch'    => ['required', 'string', 'max:255'],
+            'server_id' => ['required', 'exists:servers,id'],
         ];
     }
 }
