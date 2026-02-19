@@ -291,96 +291,107 @@
     =========================================
     --}}
 
-    @if (session("success") || session("error") || session("warning"))
-        <div @mouseenter="pause()" @mouseleave="resume()" class="fixed top-6 right-6 z-[150] w-full max-w-sm" style="display: none;" x-data="{
-            show: true,
-            timer: null,
-            progress: 100,
-            init() {
-                // Auto-close logic
-                this.timer = setInterval(() => {
-                    this.progress -= 1;
-                    if (this.progress <= 0) {
-                        this.close();
-                    }
-                }, 50); // 50ms * 100 steps = 5000ms (5 detik)
-            },
-            close() {
-                this.show = false;
-                clearInterval(this.timer);
-            },
-            pause() {
-                clearInterval(this.timer);
-            },
-            resume() {
-                this.timer = setInterval(() => {
-                    this.progress -= 1;
-                    if (this.progress <= 0) {
-                        this.close();
-                    }
-                }, 50);
-            }
-        }" x-show="show" x-transition:enter-end="opacity-100 translate-y-0 translate-x-0 scale-100" x-transition:enter-start="opacity-0 translate-y-2 translate-x-2 scale-95" x-transition:enter="transition ease-out duration-300" x-transition:leave-end="opacity-0 translate-y-2 scale-95" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave="transition ease-in duration-200">
+    <div @notify.window="notify($event.detail.message, $event.detail.type)" class="fixed top-6 right-6 z-[150] w-full max-w-sm" style="display: none;" x-data="{
+        show: false,
+        message: '',
+        type: 'success', // success, error, warning
+        timer: null,
+        progress: 100,
+    
+        init() {
+            // 1. Cek apakah ada Flash Message dari PHP (Laravel Session)
+            @if (session("success")) this.notify('{{ session("success") }}', 'success');
+            @elseif (session("error")) 
+                this.notify('{{ session("error") }}', 'error');
+            @elseif (session("warning")) 
+                this.notify('{{ session("warning") }}', 'warning'); @endif
+        },
+    
+        // Fungsi Utama untuk memunculkan Toast
+        notify(msg, type = 'success') {
+            this.message = msg;
+            this.type = type;
+            this.show = true;
+            this.progress = 100;
+            this.startTimer();
+        },
+    
+        startTimer() {
+            if (this.timer) clearInterval(this.timer);
+            this.timer = setInterval(() => {
+                this.progress -= 1;
+                if (this.progress <= 0) this.close();
+            }, 50); // 5 detik total
+        },
+    
+        close() {
+            this.show = false;
+            clearInterval(this.timer);
+        },
+        pause() { clearInterval(this.timer); },
+        resume() { this.startTimer(); }
+    }" x-show="show" x-transition:enter-end="opacity-100 translate-y-0 translate-x-0 scale-100" x-transition:enter-start="opacity-0 translate-y-2 translate-x-2 scale-95" x-transition:enter="transition ease-out duration-300" x-transition:leave-end="opacity-0 translate-y-2 scale-95" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave="transition ease-in duration-200">
 
-            {{-- CONTAINER UTAMA --}}
-            <div class="relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur-xl border border-zinc-200 shadow-2xl shadow-zinc-200/50 p-4 pr-12">
+        {{-- CONTAINER UTAMA --}}
+        <div class="relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur-xl border border-zinc-200 shadow-2xl shadow-zinc-200/50 p-4 pr-12">
 
-                {{-- 1. PROGRESS BAR (Garis Waktu di Bawah) --}}
-                <div class="absolute bottom-0 left-0 h-1 bg-zinc-100 w-full">
-                    <div :style="'width: ' + progress + '%'" class="h-full transition-all duration-75 ease-linear {{ session("error") ? "bg-rose-500" : (session("warning") ? "bg-amber-500" : "bg-blue-600") }}"></div>
+            {{-- 1. PROGRESS BAR --}}
+            <div class="absolute bottom-0 left-0 h-1 bg-zinc-100 w-full">
+                <div :class="{
+                    'bg-blue-600': type === 'success',
+                    'bg-rose-500': type === 'error',
+                    'bg-amber-500': type === 'warning'
+                }" :style="'width: ' + progress + '%'" class="h-full transition-all duration-75 ease-linear">
                 </div>
-
-                <div class="flex items-start gap-4">
-
-                    {{-- 2. ICON WITH GLOW EFFECT --}}
-                    <div class="relative flex-shrink-0">
-                        {{-- Glow Background --}}
-                        <div class="absolute inset-0 rounded-full blur-lg opacity-40 {{ session("error") ? "bg-rose-400" : (session("warning") ? "bg-amber-400" : "bg-blue-400") }}"></div>
-
-                        {{-- Icon Container --}}
-                        <div class="relative h-10 w-10 rounded-xl flex items-center justify-center border {{ session("error") ? "bg-rose-50 border-rose-100 text-rose-600" : (session("warning") ? "bg-amber-50 border-amber-100 text-amber-600" : "bg-blue-50 border-blue-100 text-blue-600") }}">
-                            @if (session("error"))
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-                                </svg>
-                            @elseif (session("warning"))
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-                                </svg>
-                            @else
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
-                                </svg>
-                            @endif
-                        </div>
-                    </div>
-
-                    {{-- 3. TEXT CONTENT --}}
-                    <div class="flex-1 min-w-0 pt-0.5">
-                        <h3 class="text-sm font-black uppercase tracking-wide text-zinc-900">
-                            @if (session("error"))
-                                System Alert
-                            @elseif(session("warning"))
-                                Attention Needed
-                            @else
-                                Operation Successful
-                            @endif
-                        </h3>
-                        <p class="text-xs font-medium text-zinc-500 mt-1 leading-relaxed">
-                            {{ session("success") ?? (session("error") ?? session("warning")) }}
-                        </p>
-                    </div>
-                </div>
-
-                {{-- 4. CLOSE BUTTON --}}
-                <button @click="close()" class="absolute top-2 right-2 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-lg transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-                    </svg>
-                </button>
             </div>
+
+            <div class="flex items-start gap-4">
+                {{-- 2. ICON --}}
+                <div class="relative flex-shrink-0">
+                    <div :class="{
+                        'bg-blue-400': type === 'success',
+                        'bg-rose-400': type === 'error',
+                        'bg-amber-400': type === 'warning'
+                    }" class="absolute inset-0 rounded-full blur-lg opacity-40"></div>
+
+                    <div :class="{
+                        'bg-blue-50 border-blue-100 text-blue-600': type === 'success',
+                        'bg-rose-50 border-rose-100 text-rose-600': type === 'error',
+                        'bg-amber-50 border-amber-100 text-amber-600': type === 'warning'
+                    }" class="relative h-10 w-10 rounded-xl flex items-center justify-center border">
+
+                        {{-- Success Icon --}}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-show="type === 'success'">
+                            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
+                        </svg>
+
+                        {{-- Error Icon --}}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-show="type === 'error'">
+                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                        </svg>
+
+                        {{-- Warning Icon --}}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-show="type === 'warning'">
+                            <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                        </svg>
+                    </div>
+                </div>
+
+                {{-- 3. TEXT CONTENT --}}
+                <div class="flex-1 min-w-0 pt-0.5">
+                    <h3 class="text-sm font-black uppercase tracking-wide text-zinc-900" x-text="type === 'error' ? 'System Alert' : (type === 'warning' ? 'Attention' : 'Success')"></h3>
+                    <p class="text-xs font-medium text-zinc-500 mt-1 leading-relaxed" x-text="message"></p>
+                </div>
+            </div>
+
+            {{-- 4. CLOSE BUTTON --}}
+            <button @click="close()" class="absolute top-2 right-2 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-lg transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                </svg>
+            </button>
         </div>
-    @endif
+    </div>
 
     @stack("scripts")
 </body>

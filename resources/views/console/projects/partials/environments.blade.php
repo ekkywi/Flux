@@ -65,12 +65,27 @@
                         @endcan
                     @endif
 
-                    <button class="px-6 py-3 rounded-xl bg-zinc-900 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-zinc-900/10 flex items-center gap-2 group-hover:-translate-y-0.5 {{ $isLocked ? "opacity-50 cursor-not-allowed grayscale" : "hover:bg-blue-600" }}" onclick="{{ $isLocked ? "Toast.fire({icon:'warning', title:'Project is locked (Maintenance/Archived)'})" : "deployConfirm('{$env->name}')" }}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-                        </svg>
-                        Deploy
-                    </button>
+                    @php
+                        $canDeploy = auth()
+                            ->user()
+                            ->can("deploy", [$project, $env]);
+                    @endphp
+
+                    @if ($canDeploy)
+                        <button class="px-6 py-3 rounded-xl bg-zinc-900 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-zinc-900/10 flex items-center gap-2 group-hover:-translate-y-0.5 {{ $isLocked ? "opacity-50 cursor-not-allowed grayscale" : "hover:bg-blue-600" }}" onclick="{{ $isLocked ? "Toast.fire({icon:'warning', title:'Project is locked'})" : "deployConfirm('{$env->name}')" }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                            </svg>
+                            Deploy
+                        </button>
+                    @else
+                        <button class="px-6 py-3 rounded-xl bg-zinc-100 text-zinc-400 font-bold text-xs uppercase tracking-widest cursor-not-allowed flex items-center gap-2" title="Access Denied: Only Managers/Owners can deploy to Production">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                            </svg>
+                            Locked
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>

@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Environment;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -80,5 +81,26 @@ class ProjectPolicy
     public function removeMember(User $user, Project $project, User $targetUser): Response|bool
     {
         return $this->updateMember($user, $project, $targetUser);
+    }
+
+    public function deploy(User $user, Project $project, Environment $environment): bool
+    {
+        $membership = $project->members->find($user->id);
+
+        if (!$membership) {
+            return false;
+        }
+
+        $role = $membership->pivot->role;
+
+        if (in_array($role, ['owner', 'manager'])) {
+            return true;
+        }
+
+        if ($role === 'member') {
+            return $environment->type !== 'production';
+        }
+
+        return false;
     }
 }

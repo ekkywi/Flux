@@ -6,50 +6,53 @@
 const config = window.ProjectConfig;
 const csrfToken = config.csrfToken;
 
-// Init Modules
-const Toast = Swal.mixin({
-  toast: true,
-  position: "top-end",
-  showConfirmButton: false,
-  timer: 3000,
-  timerProgressBar: true,
-  didOpen: (toast) => {
-    toast.addEventListener("mouseenter", Swal.stopTimer);
-    toast.addEventListener("mouseleave", Swal.resumeTimer);
-  },
-  customClass: {
-    popup:
-      "bg-white border border-zinc-200 shadow-lg rounded-xl p-3 flex items-center gap-2",
-    title: "text-zinc-800 text-xs font-bold",
-    timerProgressBar: "bg-zinc-900",
-  },
-});
+// ==========================================
+// 1. UI HELPER & MODULES
+// ==========================================
 
-const fluxSwal = Swal.mixin({
-  customClass: {
-    popup:
-      "rounded-2xl border border-zinc-200 shadow-2xl p-0 overflow-hidden font-sans",
-    title: "text-zinc-900 text-lg font-bold pt-6 px-6",
-    htmlContainer: "text-zinc-500 text-sm px-6 pb-6",
-    confirmButton:
-      "bg-zinc-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-colors shadow-sm mx-2 mb-6",
-    cancelButton:
-      "bg-white text-zinc-600 border border-zinc-200 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-zinc-50 transition-colors mx-2 mb-6",
-  },
-  buttonsStyling: false,
-});
+/**
+ * 🔥 NATIVE TOAST HELPER
+ * Mengirim event ke Alpine.js di Layout (app.blade.php)
+ * agar notifikasi tampil konsisten & cantik.
+ */
+function showNativeToast(message, type = "success") {
+  window.dispatchEvent(
+    new CustomEvent("notify", {
+      detail: { message: message, type: type },
+    }),
+  );
+}
 
-// Helper: Form Submit
+// Modal Dialog (Tetap menggunakan SweetAlert untuk Interaksi Modal)
+const fluxSwal =
+  window.fluxSwal ||
+  Swal.mixin({
+    customClass: {
+      popup:
+        "rounded-2xl border border-zinc-200 shadow-2xl p-0 overflow-hidden font-sans",
+      title: "text-zinc-900 text-lg font-bold pt-6 px-6",
+      htmlContainer: "text-zinc-500 text-sm px-6 pb-6",
+      confirmButton:
+        "bg-zinc-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-colors shadow-sm mx-2 mb-6",
+      cancelButton:
+        "bg-white text-zinc-600 border border-zinc-200 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-zinc-50 transition-colors mx-2 mb-6",
+    },
+    buttonsStyling: false,
+  });
+
+// Helper: Form Submit (Membuat form HTML tersembunyi untuk kirim data ke Laravel)
 window.submitForm = function (action, method, data = {}) {
   const form = document.createElement("form");
   form.method = "POST";
   form.action = action;
   form.style.display = "none";
+
   const csrfInput = document.createElement("input");
   csrfInput.type = "hidden";
   csrfInput.name = "_token";
   csrfInput.value = csrfToken;
   form.appendChild(csrfInput);
+
   if (method !== "POST") {
     const m = document.createElement("input");
     m.type = "hidden";
@@ -57,6 +60,7 @@ window.submitForm = function (action, method, data = {}) {
     m.value = method;
     form.appendChild(m);
   }
+
   for (const [k, v] of Object.entries(data)) {
     const i = document.createElement("input");
     i.type = "hidden";
@@ -64,19 +68,25 @@ window.submitForm = function (action, method, data = {}) {
     i.value = v;
     form.appendChild(i);
   }
+
   document.body.appendChild(form);
+
+  // Tampilkan loading saat form dikirim
   fluxSwal.fire({
     title: "Processing...",
     showConfirmButton: false,
     didOpen: () => Swal.showLoading(),
   });
+
   form.submit();
 };
 
-// Helper: Get Role Options
+// Helper: Logic Role Dropdown
 function getRoleOptions(currentSelected = "member") {
   let options = `<option value="member" ${currentSelected === "member" ? "selected" : ""}>Member</option>`;
   const myRole = config.currentUser.role;
+
+  // Hanya Owner & SysAdmin yang bisa mengangkat Manager/Owner lain
   if (myRole === "sysadmin" || myRole === "owner") {
     options += `<option value="manager" ${currentSelected === "manager" ? "selected" : ""}>Manager</option>`;
     options += `<option value="owner" ${currentSelected === "owner" ? "selected" : ""}>Owner</option>`;
@@ -84,7 +94,10 @@ function getRoleOptions(currentSelected = "member") {
   return options;
 }
 
-// --- FEATURE 1: EDIT PROJECT ---
+// ==========================================
+// 2. FEATURE: EDIT PROJECT SETTINGS
+// ==========================================
+
 window.fetchEditBranches = async function () {
   const repoInput = document.getElementById("edit-repo");
   const branchSelect = document.getElementById("edit-branch");
@@ -100,6 +113,7 @@ window.fetchEditBranches = async function () {
   const originalBtn = btnCheck.innerHTML;
   btnCheck.disabled = true;
   btnCheck.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+
   branchSelect.innerHTML = "<option>Loading...</option>";
   branchSelect.disabled = true;
 
@@ -122,14 +136,14 @@ window.fetchEditBranches = async function () {
     );
     branchSelect.disabled = false;
 
-    btnCheck.classList.add("bg-emerald-500");
     btnCheck.classList.remove("bg-zinc-900");
+    btnCheck.classList.add("bg-emerald-500");
     btnCheck.innerHTML = `<svg class="w-4 h-4 text-white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
   } catch (err) {
     branchSelect.innerHTML = `<option value="${config.branch}" selected>${config.branch}</option>`;
     branchSelect.disabled = false;
-    btnCheck.classList.add("bg-rose-500");
     btnCheck.classList.remove("bg-zinc-900");
+    btnCheck.classList.add("bg-rose-500");
     btnCheck.innerHTML = `<svg class="w-4 h-4 text-white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
   } finally {
     setTimeout(() => {
@@ -177,7 +191,10 @@ window.openEditProjectModal = async function () {
   if (formValues) submitForm(config.routes.update, "PATCH", formValues);
 };
 
-// --- FEATURE 2: MEMBERS ---
+// ==========================================
+// 3. FEATURE: MANAGE MEMBERS
+// ==========================================
+
 window.openAddMemberModal = async function () {
   fluxSwal.fire({ title: "Loading...", didOpen: () => Swal.showLoading() });
   try {
@@ -188,6 +205,7 @@ window.openAddMemberModal = async function () {
       (u) =>
         (opts += `<option value="${u.email}">${u.first_name ? u.first_name + " " + u.last_name : u.name}</option>`),
     );
+
     const { value } = await fluxSwal.fire({
       title: "Add Personnel",
       html: `<div class="flex flex-col gap-4 text-left"><div><label class="text-[10px] font-bold text-zinc-400 uppercase">User</label><input list="users" id="mem-email" class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm"><datalist id="users">${opts}</datalist></div><div><label class="text-[10px] font-bold text-zinc-400 uppercase">Role</label><select id="mem-role" class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm">${getRoleOptions()}</select></div></div>`,
@@ -235,15 +253,20 @@ window.removeMember = function (uid, name) {
     });
 };
 
-// --- FEATURE 3: ENVIRONMENTS ---
+// ==========================================
+// 4. FEATURE: MANAGE ENVIRONMENTS
+// ==========================================
+
 window.fetchEnvBranches = async function () {
   const s = document.getElementById("new-env-branch");
   const b = document.getElementById("btn-refresh-env-branch");
   const orig = b.innerHTML;
+
   b.disabled = true;
   b.innerHTML = `<svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
   s.innerHTML = "<option>Fetching...</option>";
   s.disabled = true;
+
   try {
     const res = await fetch(config.routes.fetchBranches, {
       method: "POST",
@@ -254,6 +277,7 @@ window.fetchEnvBranches = async function () {
       body: JSON.stringify({ repository_url: config.repository_url }),
     });
     const d = await res.json();
+
     s.innerHTML = "";
     d.branches.forEach(
       (br) =>
@@ -325,12 +349,16 @@ window.confirmDeleteEnv = function (id, name, type) {
     });
 };
 
-// --- UTILS ---
+// ==========================================
+// 5. UTILS & ACTIONS
+// ==========================================
+
 window.copyToClipboard = (t, m) => {
-  navigator.clipboard
-    .writeText(t)
-    .then(() => Toast.fire({ icon: "success", title: m }));
+  navigator.clipboard.writeText(t).then(() => {
+    showNativeToast(m, "success"); // Memanggil Alpine Toast di Layout
+  });
 };
+
 window.deployConfirm = (n) => {
   fluxSwal
     .fire({
@@ -340,9 +368,13 @@ window.deployConfirm = (n) => {
       confirmButtonText: "Yes",
     })
     .then((r) => {
-      if (r.isConfirmed) Toast.fire({ icon: "info", title: "Queued" });
+      if (r.isConfirmed) {
+        // Memanggil Alpine Toast di Layout
+        showNativeToast("Deployment queued for " + n, "success");
+      }
     });
 };
+
 window.confirmTermination = () => {
   fluxSwal
     .fire({

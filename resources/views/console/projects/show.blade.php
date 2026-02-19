@@ -44,21 +44,27 @@
         {{-- 🔥 DATA BRIDGE: Mengirim Data PHP ke JavaScript Eksternal --}}
         <script>
             window.ProjectConfig = {
+                // ✅ WAJIB PAKAI TANDA KUTIP ("...") UNTUK UUID
                 id: "{{ $project->id }}",
                 name: "{{ $project->name }}",
                 repository_url: "{{ $project->repository_url }}",
                 branch: "{{ $project->branch }}",
                 status: "{{ $project->status }}",
-                // Escape string description agar aman di JS
+
+                // Escape description agar aman dari enter/kutip dalam teks
                 description: `{{ str_replace(["\r", "\n"], ["", "\\n"], addslashes($project->description)) }}`,
 
                 csrfToken: "{{ csrf_token() }}",
 
                 currentUser: {
-                    id: {{ auth()->id() }},
+                    // ✅ FIX: USER ID JUGA HARUS DIKUTIP (Jaga-jaga jika User ID anda juga UUID)
+                    id: "{{ auth()->id() }}",
+
+                    // Logic Role (Pastikan kutipnya rapi)
                     role: "{{ auth()->user()->role === "System Administrator" ? "sysadmin" : $project->members->firstWhere("id", auth()->id())?->pivot->role ?? "member" }}"
                 },
 
+                // Definisi Route untuk dipanggil JS
                 routes: {
                     fetchBranches: "{{ route("console.projects.fetch-branches") }}",
                     update: "{{ route("console.projects.update", $project->id) }}",
@@ -68,7 +74,8 @@
                     envStore: "{{ route("console.projects.environments.store", $project->id) }}",
                     envDestroy: "{{ route("console.projects.environments.destroy", [$project->id, ":envId"]) }}",
 
-                    // Route Members
+                    // Route Members (Pastikan route ini ada di web.php)
+                    // Jika error 404, tambahkan 'console.' di depan nama route ini
                     memberSearch: "{{ route("projects.members.search", $project->id) }}",
                     memberStore: "{{ route("projects.members.store", $project->id) }}",
                     memberUpdate: "{{ route("projects.members.update", [$project->id, ":uid"]) }}",
