@@ -428,18 +428,52 @@ window.copyToClipboard = (t, m) => {
   });
 };
 
-window.deployConfirm = (n) => {
+window.deployConfirm = (envId, envName) => {
   fluxSwal
     .fire({
-      title: "Deploy?",
-      text: `To ${n}`,
+      title: "Deploy Infrastructure?",
+      text: `Initialize deployment sequence for ${envName}?`,
+      icon: "info",
       showCancelButton: true,
-      confirmButtonText: "Yes",
+      confirmButtonText: "Yes, Deploy Now",
+      confirmButtonColor: "#2563eb", // blue-600
+      showLoaderOnConfirm: true, // Menambahkan efek loading pada tombol
+      preConfirm: async () => {
+        try {
+          // Tembak URL deployment yang ada di config
+          const deployUrl = config.routes.envDeploy.replace(":envId", envId);
+
+          const response = await fetch(deployUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-TOKEN": csrfToken,
+              Accept: "application/json",
+            },
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.message || "Deployment failed to initialize");
+          }
+
+          return data;
+        } catch (error) {
+          Swal.showValidationMessage(`Request failed: ${error.message}`);
+        }
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
     })
-    .then((r) => {
-      if (r.isConfirmed) {
-        // Memanggil Alpine Toast di Layout
-        showNativeToast("Deployment queued for " + n, "success");
+    .then((result) => {
+      if (result.isConfirmed) {
+        // Tampilkan Notifikasi Sukses
+        showNativeToast(`Deployment queued for ${envName}`, "success");
+
+        // Opsional: Reload halaman agar UI memperbarui status (jika Anda belum punya Livewire/Websockets)
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       }
     });
 };

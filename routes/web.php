@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 // --- CONSOLE CONTROLLERS (User Area) ---
 use App\Http\Controllers\Console\DashboardController;
 use App\Http\Controllers\Console\ProjectController;
+use App\Http\Controllers\Console\DeploymentController;
 
 // --- ADMIN CONTROLLERS (SysAdmin Area) ---
 use App\Http\Controllers\Admin\UserApprovalController;
@@ -70,6 +71,9 @@ Route::middleware('auth')->group(function () {
         Route::prefix('projects/{project}/environments')->name('projects.environments.')->group(function () {
             Route::post('/', [EnvironmentController::class, 'store'])->name('store');
             Route::delete('/{environment}', [EnvironmentController::class, 'destroy'])->name('destroy');
+
+            // Deployment
+            Route::post('/{environment}/deploy', [DeploymentController::class, 'store'])->name('deploy');
         });
     });
 

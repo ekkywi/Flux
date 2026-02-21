@@ -16,6 +16,9 @@ class Project extends Model
         'name',
         'repository_url',
         'branch',
+        'stack',
+        'build_command',
+        'output_dir',
         'status',
         'description',
     ];

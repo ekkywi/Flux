@@ -73,6 +73,7 @@
                     // Route Environments
                     envStore: "{{ route("console.projects.environments.store", $project->id) }}",
                     envDestroy: "{{ route("console.projects.environments.destroy", [$project->id, ":envId"]) }}",
+                    envDeploy: "{{ route("console.projects.environments.deploy", [$project->id, ":envId"]) }}",
 
                     // Route Members (Pastikan route ini ada di web.php)
                     // Jika error 404, tambahkan 'console.' di depan nama route ini

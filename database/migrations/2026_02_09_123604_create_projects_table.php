@@ -13,6 +13,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('repository_url');
             $table->string('branch')->default('main');
+            $table->string('stack')->default('laravel');
+            $table->string('build_command')->nullable();
+            $table->string('output_dir')->nullable();
             $table->string('status')->default('active');
             $table->text('description')->nullable();
             $table->timestamps();
