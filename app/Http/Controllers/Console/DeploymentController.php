@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Console;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Project;
 use App\Models\Environment;
 use App\Models\Deployment;
 use App\Jobs\RunDeployment;
@@ -11,11 +12,11 @@ use Illuminate\Support\Facades\Auth;
 
 class DeploymentController extends Controller
 {
-    public function store(Request $request, Environment $environment)
+    public function store(Request $request, Project $project, Environment $environment)
     {
         $isDeploying = $environment->deployments()
             ->whereIn('status', ['queued', 'running'])
-            ->exist();
+            ->exists();
 
         if ($isDeploying) {
             return response()->json([
