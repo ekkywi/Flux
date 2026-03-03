@@ -17,10 +17,11 @@ class StoreEnvironmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'      => ['required', 'string', 'max:50'],
-            'type'      => ['required', Rule::in(['development', 'staging', 'production'])],
-            'branch'    => ['required', 'string', 'max:255'],
-            'server_id' => ['required', 'exists:servers,id'],
+            'name'          => ['required', 'string', 'max:50'],
+            'type'          => ['required', Rule::in(['development', 'staging', 'production'])],
+            'branch'        => ['required', 'string', 'max:255'],
+            'server_id'     => ['required', 'exists:servers,id'],
+            'db_server_id'  => ['nullable', 'uuid', 'exists:servers,id'],
         ];
     }
 }

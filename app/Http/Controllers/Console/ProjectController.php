@@ -71,10 +71,33 @@ class ProjectController extends Controller
             'repository_url'    => 'required|url',
             'branch'            => 'required|string|max:50',
             'status'            => 'required|in:active,maintenance,archived',
-            'description'       => 'nullable|string|max:500'
+            'description'       => 'nullable|string|max:500',
+            'stack'             => 'required|string|in:laravel,nodejs,html',
+            'php_version'       => 'nullable|string|in:8.1,8.2,8.3,8.4',
+            'database_type'     => 'required|string|in:sqlite,mysql,pgsql',
         ]);
 
-        $project->update($validated);
+        $buildOptions = $project->build_options ?? [];
+        $stack = strtolower($validated['stack']);
+
+        if ($stack === 'laravel' || $stack === 'php') {
+            $buildOptions['php_version'] = $validated['php_version'] ?? '8.4';
+        } else {
+            unset($buildOptions['php_version']);
+        }
+
+        $buildOptions['database_type'] = $validated['database_type'];
+
+        $project->update([
+            'name'              => $validated['name'],
+            'repository_url'    => $validated['repository_url'],
+            'default_branch'    => $validated['branch'],
+            'status'            => $validated['status'],
+            'description'       => $validated['description'],
+            'stack'             => $stack,
+            'build_options'     => $buildOptions,
+
+        ]);
 
         return back()->with('success', 'Project configuration updated');
     }

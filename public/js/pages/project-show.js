@@ -161,13 +161,60 @@ window.openEditProjectModal = async function () {
     width: "600px",
     html: `
             <div class="flex flex-col gap-5 text-left">
-                <div><label class="text-[10px] font-bold text-zinc-400 uppercase">Name</label><input id="edit-name" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-bold" value="${config.name}"></div>
-                <div><label class="text-[10px] font-bold text-zinc-400 uppercase">Repo</label><div class="flex gap-2"><input id="edit-repo" class="flex-1 px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-mono" value="${config.repository_url}"><button type="button" id="btn-check-repo" class="px-4 py-2 bg-zinc-900 text-white rounded-xl"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button></div></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[10px] font-bold text-zinc-400 uppercase">Branch</label><select id="edit-branch" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-mono"><option value="${config.branch}" selected>${config.branch}</option></select></div>
-                    <div><label class="text-[10px] font-bold text-zinc-400 uppercase">Status</label><select id="edit-status" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-bold"><option value="active" ${config.status === "active" ? "selected" : ""}>Active</option><option value="maintenance" ${config.status === "maintenance" ? "selected" : ""}>Maintenance</option><option value="archived" ${config.status === "archived" ? "selected" : ""}>Archived</option></select></div>
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase">Name</label>
+                    <input id="edit-name" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-bold" value="${config.name}">
                 </div>
-                <div><label class="text-[10px] font-bold text-zinc-400 uppercase">Desc</label><textarea id="edit-desc" rows="3" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm">${config.description}</textarea></div>
+                
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase">Repo</label>
+                    <div class="flex gap-2">
+                        <input id="edit-repo" class="flex-1 px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-mono" value="${config.repository_url}">
+                        <button type="button" id="btn-check-repo" class="px-4 py-2 bg-zinc-900 text-white rounded-xl">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase">Branch</label>
+                        <select id="edit-branch" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-mono"><option value="${config.branch}" selected>${config.branch}</option></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase">Status</label>
+                        <select id="edit-status" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-bold">
+                            <option value="active" ${config.status === "active" ? "selected" : ""}>Active</option>
+                            <option value="maintenance" ${config.status === "maintenance" ? "selected" : ""}>Maintenance</option>
+                            <option value="archived" ${config.status === "archived" ? "selected" : ""}>Archived</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase">Project Stack</label>
+                        <select id="edit-stack" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-bold" onchange="toggleEditPhpVersion()">
+                            <option value="laravel" ${config.stack === "laravel" || config.stack === "php" ? "selected" : ""}>Laravel / PHP</option>
+                            <option value="nodejs" ${config.stack === "nodejs" ? "selected" : ""}>Node.js</option>
+                            <option value="html" ${config.stack === "html" ? "selected" : ""}>Static HTML</option>
+                        </select>
+                    </div>
+                    <div id="edit-php-container" style="${config.stack === "laravel" || config.stack === "php" || !config.stack ? "display:block;" : "display:none;"}">
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase">PHP Version</label>
+                        <select id="edit-php-version" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-bold">
+                            <option value="8.4" ${config.php_version === "8.4" ? "selected" : ""}>PHP 8.4 (Latest)</option>
+                            <option value="8.3" ${config.php_version === "8.3" ? "selected" : ""}>PHP 8.3</option>
+                            <option value="8.2" ${config.php_version === "8.2" ? "selected" : ""}>PHP 8.2</option>
+                            <option value="8.1" ${config.php_version === "8.1" ? "selected" : ""}>PHP 8.1</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase">Desc</label>
+                    <textarea id="edit-desc" rows="3" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm">${config.description}</textarea>
+                </div>
             </div>
         `,
     showCancelButton: true,
@@ -180,15 +227,44 @@ window.openEditProjectModal = async function () {
           fetchEditBranches();
         });
     },
-    preConfirm: () => ({
-      name: document.getElementById("edit-name").value,
-      repository_url: document.getElementById("edit-repo").value,
-      branch: document.getElementById("edit-branch").value,
-      status: document.getElementById("edit-status").value,
-      description: document.getElementById("edit-desc").value,
-    }),
+    preConfirm: () => {
+      // Tangkap data dari form modal SweetAlert
+      const name = document.getElementById("edit-name").value;
+      const repository_url = document.getElementById("edit-repo").value;
+      const branch = document.getElementById("edit-branch").value;
+      const status = document.getElementById("edit-status").value;
+      const description = document.getElementById("edit-desc").value;
+      const stack = document.getElementById("edit-stack").value;
+      const php_version = document.getElementById("edit-php-version").value;
+
+      return {
+        name,
+        repository_url,
+        branch,
+        status,
+        description,
+        stack, // 🔥 Kirim ke Laravel
+        php_version:
+          stack === "laravel" || stack === "php" ? php_version : null, // Kirim PHP version jika stack sesuai
+      };
+    },
   });
+
   if (formValues) submitForm(config.routes.update, "PATCH", formValues);
+};
+
+window.toggleEditPhpVersion = function () {
+  const stackSelect = document.getElementById("edit-stack");
+  const phpContainer = document.getElementById("edit-php-container");
+
+  if (stackSelect && phpContainer) {
+    const selectedStack = stackSelect.value.toLowerCase();
+    if (selectedStack === "laravel" || selectedStack === "php") {
+      phpContainer.style.display = "block";
+    } else {
+      phpContainer.style.display = "none";
+    }
+  }
 };
 
 // ==========================================
@@ -302,11 +378,10 @@ window.openAddEnvModal = async function () {
   });
 
   try {
-    // 2. Fetch Daftar Server
-    const response = await fetch("/internal/servers-list"); // Sesuaikan route langkah 1
+    // Fetch Daftar Server (Pastikan route ini benar di sistem Anda)
+    const response = await fetch("/internal/servers-list");
     const servers = await response.json();
 
-    // Jika tidak ada server tersedia
     if (servers.length === 0) {
       fluxSwal.fire(
         "Error",
@@ -316,7 +391,6 @@ window.openAddEnvModal = async function () {
       return;
     }
 
-    // 3. Buat HTML Options untuk Dropdown
     let serverOptions = servers
       .map(
         (s) =>
@@ -324,51 +398,81 @@ window.openAddEnvModal = async function () {
       )
       .join("");
 
-    // 4. Tampilkan Modal Form dengan Input Server
+    // Fallback aman untuk database_type
+    const dbType = config.database_type || "sqlite";
+    const dbNameDisplay =
+      dbType === "pgsql" ? "POSTGRESQL" : dbType.toUpperCase();
+
+    // Logika HTML DB Server
+    let dbServerHtml = "";
+    if (dbType !== "sqlite") {
+      dbServerHtml = `
+        <div class="mt-5 pt-4 border-t border-zinc-100">
+            <label class="text-[10px] font-bold text-zinc-400 uppercase">Target Database Server</label>
+            <div class="relative mt-1">
+                <select id="new-env-db-server" class="w-full px-3 py-2.5 border border-blue-200 rounded-xl text-sm font-mono appearance-none bg-blue-50 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="" disabled selected>-- Select Database Server --</option>
+                    ${serverOptions}
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            </div>
+            <p class="text-[9px] font-bold text-blue-500 uppercase mt-1.5 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>
+                ${dbNameDisplay} container will be deployed here.
+            </p>
+        </div>
+        `;
+    }
+
     const { value } = await fluxSwal.fire({
       title: "Provision Node",
       width: "500px",
       html: `
-                <div class="flex flex-col gap-5 text-left">
-                    <div>
-                        <label class="text-[10px] font-bold text-zinc-400 uppercase">Name</label>
-                        <input id="new-env-name" class="w-full px-3 py-2.5 border rounded-xl text-sm font-bold" placeholder="e.g. Staging">
-                    </div>
+        <div class="flex flex-col gap-5 text-left">
+            <div>
+                <label class="text-[10px] font-bold text-zinc-400 uppercase">Name</label>
+                <input id="new-env-name" class="w-full px-3 py-2.5 border rounded-xl text-sm font-bold" placeholder="e.g. Staging">
+            </div>
 
-                    <div>
-                        <label class="text-[10px] font-bold text-zinc-400 uppercase">Type</label>
-                        <div class="grid grid-cols-3 gap-3 mt-1">
-                            <label class="cursor-pointer"><input type="radio" name="env_type" value="development" class="peer sr-only" checked><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-200 hover:bg-zinc-50">DEV</div></label>
-                            <label class="cursor-pointer"><input type="radio" name="env_type" value="staging" class="peer sr-only"><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-amber-50 peer-checked:text-amber-600 peer-checked:border-amber-200 hover:bg-zinc-50">STAGING</div></label>
-                            <label class="cursor-pointer"><input type="radio" name="env_type" value="production" class="peer sr-only"><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-rose-50 peer-checked:text-rose-600 peer-checked:border-rose-200 hover:bg-zinc-50">PROD</div></label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-bold text-zinc-400 uppercase">Target Server</label>
-                        <div class="relative">
-                            <select id="new-env-server" class="w-full px-3 py-2.5 border rounded-xl text-sm font-mono appearance-none bg-white">
-                                ${serverOptions}
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <label class="text-[10px] font-bold text-zinc-400 uppercase">Branch</label>
-                            <button type="button" id="btn-refresh-env-branch" class="p-1 border rounded bg-white hover:bg-zinc-50"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></button>
-                        </div>
-                        <div class="relative">
-                            <select id="new-env-branch" class="w-full px-3 py-2.5 border rounded-xl text-sm font-mono">
-                                <option value="${config.branch}">${config.branch} (Default)</option>
-                            </select>
-                        </div>
+            <div>
+                <label class="text-[10px] font-bold text-zinc-400 uppercase">Type</label>
+                <div class="grid grid-cols-3 gap-3 mt-1">
+                    <label class="cursor-pointer"><input type="radio" name="env_type" value="development" class="peer sr-only" checked><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-200 hover:bg-zinc-50">DEV</div></label>
+                    <label class="cursor-pointer"><input type="radio" name="env_type" value="staging" class="peer sr-only"><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-amber-50 peer-checked:text-amber-600 peer-checked:border-amber-200 hover:bg-zinc-50">STAGING</div></label>
+                    <label class="cursor-pointer"><input type="radio" name="env_type" value="production" class="peer sr-only"><div class="py-2.5 rounded-xl border text-center text-xs font-bold text-zinc-500 peer-checked:bg-rose-50 peer-checked:text-rose-600 peer-checked:border-rose-200 hover:bg-zinc-50">PROD</div></label>
+                </div>
+            </div>
+            
+            <div>
+                <label class="text-[10px] font-bold text-zinc-400 uppercase">Target App Server</label>
+                <div class="relative mt-1">
+                    <select id="new-env-server" class="w-full px-3 py-2.5 border rounded-xl text-sm font-mono appearance-none bg-white">
+                        <option value="" disabled selected>-- Select Application Server --</option>
+                        ${serverOptions}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </div>
-            `,
+            </div>
+
+            ${dbServerHtml}
+
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase">Branch</label>
+                    <button type="button" id="btn-refresh-env-branch" class="p-1 border rounded bg-white hover:bg-zinc-50"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></button>
+                </div>
+                <div class="relative">
+                    <select id="new-env-branch" class="w-full px-3 py-2.5 border rounded-xl text-sm font-mono">
+                        <option value="${config.branch}">${config.branch} (Default)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+      `,
       showCancelButton: true,
       confirmButtonText: "Provision",
       didOpen: () => {
@@ -381,14 +485,22 @@ window.openAddEnvModal = async function () {
       },
       preConfirm: () => {
         const n = document.getElementById("new-env-name").value;
-        const s = document.getElementById("new-env-server").value; // Ambil nilai Server ID
+        const s = document.getElementById("new-env-server").value;
+
+        // Cek target DB secara aman
+        const dbSelect = document.getElementById("new-env-db-server");
+        const db_s = dbSelect ? dbSelect.value : null;
 
         if (!n) Swal.showValidationMessage("Name required");
-        if (!s) Swal.showValidationMessage("Please select a server");
+        else if (!s)
+          Swal.showValidationMessage("Please select an Application server");
+        else if (dbType !== "sqlite" && !db_s)
+          Swal.showValidationMessage("Please select a Database server");
 
         return {
           name: n,
-          server_id: s, // 🔥 Kirim ke Backend
+          server_id: s,
+          db_server_id: db_s,
           type: document.querySelector('input[name="env_type"]:checked').value,
           branch: document.getElementById("new-env-branch").value,
         };
@@ -398,7 +510,11 @@ window.openAddEnvModal = async function () {
     if (value) submitForm(config.routes.envStore, "POST", value);
   } catch (error) {
     console.error(error);
-    fluxSwal.fire("Error", "Failed to fetch server list.", "error");
+    fluxSwal.fire(
+      "Error",
+      "Failed to load provision form. Check console.",
+      "error",
+    );
   }
 };
 

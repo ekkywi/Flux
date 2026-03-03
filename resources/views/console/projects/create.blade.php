@@ -56,6 +56,93 @@
                             <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Description</label>
                             <textarea class="w-full bg-zinc-50 border border-zinc-200 text-zinc-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3.5 font-medium placeholder:text-zinc-400" name="description" placeholder="Brief description of the service..." rows="3">{{ old("description") }}</textarea>
                         </div>
+
+                        <div class="pt-4 border-t border-zinc-100">
+                            <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Project Stack <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <select class="w-full bg-zinc-50 border @error("stack") border-red-300 bg-red-50 @else border-zinc-200 @enderror text-zinc-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3.5 font-bold appearance-none transition-colors" id="stack" name="stack" onchange="togglePhpVersion()" required>
+                                    <option disabled selected value="">-- Select Stack --</option>
+                                    <option {{ old("stack") == "laravel" ? "selected" : "" }} value="laravel">Laravel / PHP</option>
+                                    <option {{ old("stack") == "nodejs" ? "selected" : "" }} value="nodejs">Node.js</option>
+                                    <option {{ old("stack") == "html" ? "selected" : "" }} value="html">Static HTML</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none">
+                                    <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                    </svg>
+                                </div>
+                            </div>
+                            @error("stack")
+                                <p class="mt-1 text-xs text-red-500 font-bold">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div id="php_version_container" style="display: none;">
+                            <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">PHP Version</label>
+                            <div class="relative">
+                                <select class="w-full bg-zinc-50 border @error("php_version") border-red-300 bg-red-50 @else border-zinc-200 @enderror text-zinc-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3.5 font-bold appearance-none transition-colors" id="php_version" name="php_version">
+                                    <option {{ old("php_version", "8.4") == "8.4" ? "selected" : "" }} value="8.4">PHP 8.4 (Latest)</option>
+                                    <option {{ old("php_version") == "8.3" ? "selected" : "" }} value="8.3">PHP 8.3</option>
+                                    <option {{ old("php_version") == "8.2" ? "selected" : "" }} value="8.2">PHP 8.2</option>
+                                    <option {{ old("php_version") == "8.1" ? "selected" : "" }} value="8.1">PHP 8.1</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none">
+                                    <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                    </svg>
+                                </div>
+                            </div>
+                            @error("php_version")
+                                <p class="mt-1 text-xs text-red-500 font-bold">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="pt-4 border-t border-zinc-100 mt-4">
+                            <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Database Engine <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <label class="cursor-pointer relative">
+                                    <input {{ old("database_type", "sqlite") == "sqlite" ? "checked" : "" }} class="peer sr-only" name="database_type" type="radio" value="sqlite">
+                                    <div class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 peer-checked:bg-blue-50 peer-checked:border-blue-300 peer-checked:ring-1 peer-checked:ring-blue-300 transition-all text-center">
+                                        <p class="text-sm font-bold text-zinc-900">SQLite</p>
+                                        <p class="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Single Node</p>
+                                    </div>
+                                    <div class="absolute top-2 right-2 hidden peer-checked:block text-blue-500">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                </label>
+
+                                <label class="cursor-pointer relative">
+                                    <input {{ old("database_type") == "mysql" ? "checked" : "" }} class="peer sr-only" name="database_type" type="radio" value="mysql">
+                                    <div class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 peer-checked:bg-blue-50 peer-checked:border-blue-300 peer-checked:ring-1 peer-checked:ring-blue-300 transition-all text-center">
+                                        <p class="text-sm font-bold text-zinc-900">MySQL 8</p>
+                                        <p class="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Multi Node Ready</p>
+                                    </div>
+                                    <div class="absolute top-2 right-2 hidden peer-checked:block text-blue-500">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                </label>
+
+                                <label class="cursor-pointer relative">
+                                    <input {{ old("database_type") == "pgsql" ? "checked" : "" }} class="peer sr-only" name="database_type" type="radio" value="pgsql">
+                                    <div class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 peer-checked:bg-blue-50 peer-checked:border-blue-300 peer-checked:ring-1 peer-checked:ring-blue-300 transition-all text-center">
+                                        <p class="text-sm font-bold text-zinc-900">PostgreSQL</p>
+                                        <p class="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Multi Node Ready</p>
+                                    </div>
+                                    <div class="absolute top-2 right-2 hidden peer-checked:block text-blue-500">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                </label>
+                            </div>
+                            @error("database_type")
+                                <p class="mt-1 text-xs text-red-500 font-bold">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 
@@ -181,6 +268,17 @@
     </div>
 
     <script>
+        function togglePhpVersion() {
+            const stack = document.getElementById('stack').value;
+            const phpContainer = document.getElementById('php_version_container');
+
+            if (stack === 'laravel' || stack === 'php') {
+                phpContainer.style.display = 'block';
+            } else {
+                phpContainer.style.display = 'none';
+            }
+        }
+
         function updatePreview(id, val) {
             const el = document.getElementById(id);
             el.innerText = val.trim() === '' ? '...' : val;
@@ -283,6 +381,7 @@
             const oldRepo = "{{ old("repository_url") }}";
             if (oldName) updatePreview('preview-name', oldName);
             if (oldRepo) updatePreview('preview-repo', oldRepo);
+            togglePhpVersion();
         }
     </script>
 @endsection

@@ -17,6 +17,7 @@ class Project extends Model
         'repository_url',
         'branch',
         'stack',
+        'build_options',
         'build_command',
         'output_dir',
         'status',
@@ -25,6 +26,7 @@ class Project extends Model
 
     protected $casts = [
         'status' => 'string',
+        'build_options' => 'array',
     ];
 
     public function members(): BelongsToMany

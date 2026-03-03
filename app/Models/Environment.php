@@ -14,6 +14,7 @@ class Environment extends Model
     protected $fillable = [
         'project_id',
         'server_id',
+        'db_server_id',
         'port',
         'name',
         'branch',
@@ -39,5 +40,10 @@ class Environment extends Model
     public function deployments(): HasMany
     {
         return $this->hasMany(Deployment::class);
+    }
+
+    public function dbServer()
+    {
+        return $this->belongsTo(Server::class, 'db_server_id');
     }
 }

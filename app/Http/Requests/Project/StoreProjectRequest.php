@@ -18,6 +18,9 @@ class StoreProjectRequest extends FormRequest
             'repository_url'    => ['required', 'url'],
             'branch'            => ['required', 'string', 'max:255'],
             'description'       => ['nullable', 'string'],
+            'stack'             => ['required', 'string', 'in:laravel,nodejs,html'],
+            'php_version'       => ['nullable', 'string', 'in:8.1,8.2,8.3,8.4'],
+            'database_type'     => ['required', 'string', 'in:sqlite,mysql,pgsql'],
         ];
     }
 
@@ -25,7 +28,8 @@ class StoreProjectRequest extends FormRequest
     {
         return [
             'repository_url.url'    => 'Repository link must be valid.',
-            'branch.requireq'       => 'Please select a target branch for deployment.'
+            'branch.requireq'       => 'Please select a target branch for deployment.',
+            'stack.required'        => 'Please select a project stack.'
         ];
     }
 }

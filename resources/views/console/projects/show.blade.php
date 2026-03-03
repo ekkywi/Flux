@@ -53,6 +53,9 @@
 
                 // Escape description agar aman dari enter/kutip dalam teks
                 description: `{{ str_replace(["\r", "\n"], ["", "\\n"], addslashes($project->description)) }}`,
+                stack: "{{ $project->stack ?? "laravel" }}",
+                php_version: "{{ data_get($project->build_options, "php_version", "8.4") }}",
+                database_type: "{{ data_get($project->build_options, "database_type", "sqlite") }}",
 
                 csrfToken: "{{ csrf_token() }}",
 
