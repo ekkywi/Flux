@@ -587,9 +587,70 @@ window.deployConfirm = (envId, envName) => {
         showNativeToast(`Deployment queued for ${envName}`, "success");
 
         // Opsional: Reload halaman agar UI memperbarui status (jika Anda belum punya Livewire/Websockets)
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 1500);
+      }
+    });
+};
+
+window.stopConfirm = (envId, envName) => {
+  fluxSwal
+    .fire({
+      title: "Stop Environment?",
+      html: `Are you sure you want to shut down <b>${envName}</b>?<br><br><span class='text-xs text-rose-500 font-bold bg-rose-50 px-3 py-2 rounded-lg border border-rose-100 block text-left'>Warning: All containers on the Application Server and Database will be forcibly terminated.</span>`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Turn it off",
+      confirmButtonColor: "#e11d48",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        try {
+          const stopUrl = config.routes.envDeploy
+            .replace(":envId", envId)
+            .replace("/deploy", "/stop");
+
+          const response = await fetch(stopUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-TOKEN": csrfToken,
+              Accept: "application/json",
+            },
+          });
+
+          if (response.redirected) {
+            return { message: "Stop signal sent successfully" };
+          }
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.message || "Failed to send stop signal");
+          }
+
+          return data;
+        } catch (error) {
+          submitForm(
+            config.routes.envDeploy
+              .replace(":envId", envId)
+              .replace("/deploy", "/stop"),
+            "POST",
+          );
+          return false;
+        }
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+    })
+    .then((result) => {
+      if (result.isConfirmed && result.value) {
+        showNativeToast(`Stop signal sent to ${envName}`, "success");
+
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 1500);
       }
     });
 };
@@ -606,4 +667,115 @@ window.confirmTermination = () => {
     .then((r) => {
       if (r.isConfirmed) submitForm(config.routes.destroy, "DELETE");
     });
+};
+
+// ==========================================
+// 6. REAL-TIME ENGINE (SILENT POLLING)
+// ==========================================
+
+window.startEnvironmentPolling = function () {
+  const envList = document.getElementById("environments-list");
+  if (!envList) return;
+
+  setInterval(async () => {
+    try {
+      const res = await fetch(window.location.href, {
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (!res.ok) return;
+      const html = await res.text();
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      const newList = doc.getElementById("environments-list");
+
+      if (newList && envList.innerHTML !== newList.innerHTML) {
+        envList.innerHTML = newList.innerHTML;
+      }
+    } catch (e) {}
+  }, 3000);
+};
+
+document.addEventListener("DOMContentLoaded", window.startEnvironmentPolling);
+
+// ==========================================
+// 7. LIVE TERMINAL (LOGS VIEWER)
+// ==========================================
+
+window.terminalInterval = null;
+
+window.openTerminal = function (envId, envName) {
+  fluxSwal.fire({
+    title: `Terminal: ${envName}`,
+    html: `
+            <div class="bg-zinc-950 rounded-xl p-4 mt-2 h-96 overflow-y-auto text-left font-mono text-xs text-emerald-400 shadow-inner flex flex-col" id="terminal-screen-${envId}">
+                <div class="text-zinc-500 mb-2">Connecting to build server...</div>
+                <div id="terminal-output-${envId}"></div>
+                <div id="terminal-spinner-${envId}" class="mt-2 text-zinc-400 animate-pulse">_</div>
+            </div>
+        `,
+    width: "800px",
+    showConfirmButton: false,
+    showCloseButton: true,
+    allowOutsideClick: false,
+    didClose: () => {
+      if (window.terminalInterval) clearInterval(window.terminalInterval);
+    },
+  });
+
+  const outputDiv = document.getElementById(`terminal-output-${envId}`);
+  const screenDiv = document.getElementById(`terminal-screen-${envId}`);
+  const spinnerDiv = document.getElementById(`terminal-spinner-${envId}`);
+
+  const fetchLogs = async () => {
+    try {
+      const logUrl = config.routes.envDeploy
+        .replace(":envId", envId)
+        .replace("/deploy", "/logs");
+
+      const res = await fetch(logUrl);
+      const data = await res.json();
+
+      if (data.logs && data.logs.length > 0) {
+        let logHtml = data.logs
+          .map((line) => {
+            if (
+              line.includes("ERROR") ||
+              line.includes("FAIL") ||
+              line.includes("FATAL")
+            ) {
+              return `<div class="text-rose-500">${line}</div>`;
+            }
+            if (line.includes("Initializing") || line.includes("completed")) {
+              return `<div class="text-blue-400">${line}</div>`;
+            }
+            return `<div>${line}</div>`;
+          })
+          .join("");
+
+        if (outputDiv.innerHTML !== logHtml) {
+          outputDiv.innerHTML = logHtml;
+          screenDiv.scrollTop = screenDiv.scrollHeight;
+        }
+      }
+
+      if (data.status === "completed" || data.status === "failed") {
+        spinnerDiv.style.display = "none";
+        if (window.terminalInterval) clearInterval(window.terminalInterval);
+      } else {
+        spinnerDiv.style.display = "block";
+      }
+    } catch (e) {
+      console.error("Gagal menarik log", e);
+    }
+  };
+
+  fetchLogs();
+  if (window.terminalInterval) clearInterval(window.terminalInterval);
+  window.terminalInterval = setInterval(fetchLogs, 2000);
 };

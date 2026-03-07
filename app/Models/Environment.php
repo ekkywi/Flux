@@ -16,8 +16,10 @@ class Environment extends Model
         'server_id',
         'db_server_id',
         'port',
+        'db_port',
         'name',
         'branch',
+        'status',
         'url',
         'type',
     ];

@@ -97,11 +97,12 @@
                             @enderror
                         </div>
 
+                        {{-- 🔥 PERBAIKAN: DATABASE ENGINE DITAMBAH MARIADB 🔥 --}}
                         <div class="pt-4 border-t border-zinc-100 mt-4">
                             <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Database Engine <span class="text-red-500">*</span></label>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                 <label class="cursor-pointer relative">
-                                    <input {{ old("database_type", "sqlite") == "sqlite" ? "checked" : "" }} class="peer sr-only" name="database_type" type="radio" value="sqlite">
+                                    <input {{ old("database_type", "sqlite") == "sqlite" ? "checked" : "" }} class="peer sr-only" name="database_type" onchange="toggleDbVersion()" type="radio" value="sqlite">
                                     <div class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 peer-checked:bg-blue-50 peer-checked:border-blue-300 peer-checked:ring-1 peer-checked:ring-blue-300 transition-all text-center">
                                         <p class="text-sm font-bold text-zinc-900">SQLite</p>
                                         <p class="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Single Node</p>
@@ -114,10 +115,10 @@
                                 </label>
 
                                 <label class="cursor-pointer relative">
-                                    <input {{ old("database_type") == "mysql" ? "checked" : "" }} class="peer sr-only" name="database_type" type="radio" value="mysql">
+                                    <input {{ old("database_type") == "mysql" ? "checked" : "" }} class="peer sr-only" name="database_type" onchange="toggleDbVersion()" type="radio" value="mysql">
                                     <div class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 peer-checked:bg-blue-50 peer-checked:border-blue-300 peer-checked:ring-1 peer-checked:ring-blue-300 transition-all text-center">
-                                        <p class="text-sm font-bold text-zinc-900">MySQL 8</p>
-                                        <p class="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Multi Node Ready</p>
+                                        <p class="text-sm font-bold text-zinc-900">MySQL</p>
+                                        <p class="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Multi Node</p>
                                     </div>
                                     <div class="absolute top-2 right-2 hidden peer-checked:block text-blue-500">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -127,10 +128,23 @@
                                 </label>
 
                                 <label class="cursor-pointer relative">
-                                    <input {{ old("database_type") == "pgsql" ? "checked" : "" }} class="peer sr-only" name="database_type" type="radio" value="pgsql">
+                                    <input {{ old("database_type") == "mariadb" ? "checked" : "" }} class="peer sr-only" name="database_type" onchange="toggleDbVersion()" type="radio" value="mariadb">
+                                    <div class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 peer-checked:bg-blue-50 peer-checked:border-blue-300 peer-checked:ring-1 peer-checked:ring-blue-300 transition-all text-center">
+                                        <p class="text-sm font-bold text-zinc-900">MariaDB</p>
+                                        <p class="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Multi Node</p>
+                                    </div>
+                                    <div class="absolute top-2 right-2 hidden peer-checked:block text-blue-500">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                </label>
+
+                                <label class="cursor-pointer relative">
+                                    <input {{ old("database_type") == "pgsql" ? "checked" : "" }} class="peer sr-only" name="database_type" onchange="toggleDbVersion()" type="radio" value="pgsql">
                                     <div class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 peer-checked:bg-blue-50 peer-checked:border-blue-300 peer-checked:ring-1 peer-checked:ring-blue-300 transition-all text-center">
                                         <p class="text-sm font-bold text-zinc-900">PostgreSQL</p>
-                                        <p class="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Multi Node Ready</p>
+                                        <p class="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Multi Node</p>
                                     </div>
                                     <div class="absolute top-2 right-2 hidden peer-checked:block text-blue-500">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -143,6 +157,24 @@
                                 <p class="mt-1 text-xs text-red-500 font-bold">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        {{-- 🔥 FITUR BARU: DROPDOWN DATABASE VERSION 🔥 --}}
+                        <div id="db_version_container" style="display: none;">
+                            <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 mt-4">Database Version</label>
+                            <div class="relative">
+                                <select class="w-full bg-zinc-50 border @error("database_version") border-red-300 bg-red-50 @else border-zinc-200 @enderror text-zinc-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3.5 font-bold appearance-none transition-colors" id="database_version" name="database_version">
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none">
+                                    <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                    </svg>
+                                </div>
+                            </div>
+                            @error("database_version")
+                                <p class="mt-1 text-xs text-red-500 font-bold">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                     </div>
                 </div>
 
@@ -268,6 +300,118 @@
     </div>
 
     <script>
+        // 🔥 FITUR BARU: Konfigurasi Versi Database Dinamis 🔥
+        const dbVersions = {
+            mysql: [{
+                    value: 'latest',
+                    label: 'MySQL Latest (Recommended)'
+                },
+                {
+                    value: '9.6',
+                    label: 'MySQL 9.6 (Innovation Release)'
+                },
+                {
+                    value: '9.5',
+                    label: 'MySQL 9.5 (Innovation Release)'
+                },
+                {
+                    value: '9.4',
+                    label: 'MySQL 9.4 (Innovation Release)'
+                },
+                {
+                    value: '9.3',
+                    label: 'MySQL 9,3 (Innovation Release)'
+                },
+                {
+                    value: '9.0',
+                    label: 'MySQL 9.0 (Innovation Release)'
+                },
+                {
+                    value: '8.4',
+                    label: 'MySQL 8.4 (Long Term Support)',
+                },
+                {
+                    value: '8.0',
+                    label: 'MySQL 8.0 (Legacy Long Term Support)'
+                },
+                {
+                    value: '5.7',
+                    label: 'MySQL 5.7 (Older, not recommended)'
+                },
+            ],
+            pgsql: [{
+                    value: 'latest',
+                    label: 'PostgreSQL Latest (Recommended)'
+                },
+                {
+                    value: '18-alpine',
+                    label: 'PostgreSQL 18'
+                },
+                {
+                    value: '17-alpine',
+                    label: 'PostgreSQL 17'
+                },
+                {
+                    value: '16-alpine',
+                    label: 'PostgreSQL 16'
+                },
+                {
+                    value: '15-alpine',
+                    label: 'PostgreSQL 15'
+                },
+                {
+                    value: '14-alpine',
+                    label: 'PostgreSQL 14'
+                }
+            ],
+            mariadb: [{
+                    value: 'latest',
+                    label: 'MariaDB Latest (Recommended)'
+                },
+                {
+                    value: '11.2',
+                    label: 'MariaDB 11.2'
+                },
+                {
+                    value: '10.11',
+                    label: 'MariaDB 10.11 (Long Term Support)'
+                },
+                {
+                    value: '10.6',
+                    label: 'MariaDB 10.6 (Long Term Support)'
+                }
+            ]
+        };
+
+        function toggleDbVersion() {
+            const dbType = document.querySelector('input[name="database_type"]:checked').value;
+            const container = document.getElementById('db_version_container');
+            const select = document.getElementById('database_version');
+            const oldDbVersion = "{{ old("database_version") }}";
+
+            if (dbType === 'sqlite') {
+                container.style.display = 'none';
+                select.innerHTML = ''; // Kosongkan
+            } else {
+                container.style.display = 'block';
+                select.innerHTML = '';
+
+                // Isi dropdown sesuai engine yang dipilih
+                dbVersions[dbType].forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v.value;
+                    opt.text = v.label;
+
+                    // Pertahankan state lama jika form error
+                    if (v.value === oldDbVersion) {
+                        opt.selected = true;
+                    }
+
+                    select.appendChild(opt);
+                });
+            }
+        }
+
         function togglePhpVersion() {
             const stack = document.getElementById('stack').value;
             const phpContainer = document.getElementById('php_version_container');
@@ -305,10 +449,8 @@
             select.innerHTML = '<option>Loading...</option>';
 
             try {
-                // Mengambil CSRF Token dari input hidden bawaan Laravel
                 const token = document.querySelector('input[name="_token"]').value;
 
-                // Panggil API Laravel
                 const res = await fetch("{{ route("console.projects.fetch-branches") }}", {
                     method: "POST",
                     headers: {
@@ -323,7 +465,6 @@
                 if (!res.ok) throw new Error("Failed");
                 const data = await res.json();
 
-                // Populate Dropdown
                 select.innerHTML = '';
 
                 if (data.branches.length === 0) {
@@ -356,7 +497,6 @@
                 document.getElementById('branch-success').classList.remove('hidden');
                 document.getElementById('branch-count').innerText = data.branches.length;
 
-                // Update Preview dengan value default yang terpilih
                 if (data.branches.length > 0) updatePreview('preview-branch', select.value);
 
             } catch (e) {
@@ -375,13 +515,14 @@
             }
         }
 
-        // Auto-update preview jika ada old data (misal saat validasi gagal)
         window.onload = function() {
             const oldName = "{{ old("name") }}";
             const oldRepo = "{{ old("repository_url") }}";
             if (oldName) updatePreview('preview-name', oldName);
             if (oldRepo) updatePreview('preview-repo', oldRepo);
+
             togglePhpVersion();
+            toggleDbVersion(); // 🔥 Panggil saat awal loading agar versi sesuai dengan yg dipilih
         }
     </script>
 @endsection

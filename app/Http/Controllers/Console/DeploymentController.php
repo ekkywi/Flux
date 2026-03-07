@@ -25,6 +25,8 @@ class DeploymentController extends Controller
             ], 422);
         }
 
+        $environment->update(['status' => 'deploying']);
+
         $deployment = Deployment::create([
             'environment_id'    => $environment->id,
             'user_id'           => Auth::id(),
@@ -37,6 +39,22 @@ class DeploymentController extends Controller
             'status'            => 'success',
             'message'           => 'Deployment has been queued successfully.',
             'deployment_id'     => $deployment->id
+        ]);
+    }
+
+    public function logs(Project $project, Environment $environment)
+    {
+        $deployment = $environment->deployments()->latest()->first();
+
+        if (!$deployment) {
+            return response()->json(['status' => 'none', 'logs' => []]);
+        }
+
+        $logs = $deployment->logs()->orderBy('id', 'asc')->pluck('output');
+
+        return response()->json([
+            'status'    => $deployment->status,
+            'logs'      => $logs
         ]);
     }
 }

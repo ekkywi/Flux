@@ -6,7 +6,7 @@
         </button>
     @endcan
 </div>
-<div class="space-y-4">
+<div class="space-y-4" id="environments-list">
     @forelse($project->environments as $env)
         @php
             $isProd = $env->type === "production";
@@ -36,6 +36,16 @@
                             <h2 class="text-lg font-black text-zinc-900">{{ $env->name }}</h2>
                             <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest {{ $badgeColor }}">{{ $env->type }}</span>
                         </div>
+
+                        {{-- Baris 2: URL Aplikasi (Ditaruh di luar div judul agar turun ke bawah) --}}
+                        @if ($env->port && $env->status === "running")
+                            <a class="text-xs font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 mt-1 mb-2 transition-colors" href="http://{{ $env->server->ip_address }}:{{ $env->port }}" target="_blank">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                </svg>
+                                http://{{ $env->server->ip_address }}:{{ $env->port }}
+                            </a>
+                        @endif
                         <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-zinc-500">
                             <div class="flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,6 +75,14 @@
                         @endcan
                     @endif
 
+                    @if ($env->deployments()->count() > 0)
+                        <button class="px-4 py-3 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2" onclick="openTerminal('{{ $env->id }}', '{{ $env->name }}')" title="View Real-time Logs" type="button">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                            </svg>
+                        </button>
+                    @endif
+
                     @php
                         $canDeploy = auth()
                             ->user()
@@ -72,12 +90,39 @@
                     @endphp
 
                     @if ($canDeploy)
-                        <button class="px-6 py-3 rounded-xl bg-zinc-900 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-zinc-900/10 flex items-center gap-2 group-hover:-translate-y-0.5 {{ $isLocked ? "opacity-50 cursor-not-allowed grayscale" : "hover:bg-blue-600" }}" onclick="{{ $isLocked ? "Toast.fire({icon:'warning', title:'Project is locked'})" : "deployConfirm('{$env->id}', '{$env->name}')" }}">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-                            </svg>
-                            Deploy
-                        </button>
+                        @if ($env->status === "running")
+                            <form action="{{ route("console.projects.environments.stop", [$project, $env]) }}" class="m-0" id="stop-form-{{ $env->id }}" method="POST">
+                                @csrf
+                                <button class="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-rose-600/20 flex items-center gap-2 group-hover:-translate-y-0.5" onclick="stopConfirm('{{ $env->id }}', '{{ $env->name }}')" type="button">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                        <path d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                    </svg>
+                                    Stop
+                                </button>
+                            </form>
+                        @elseif($env->status === "stopping")
+                            <button class="px-6 py-3 rounded-xl bg-zinc-100 text-zinc-400 font-bold text-xs uppercase tracking-widest cursor-not-allowed flex items-center gap-2" disabled>
+                                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                </svg>
+                                Stopping...
+                            </button>
+                        @elseif($env->status === "deploying")
+                            <button class="px-6 py-3 rounded-xl bg-blue-50 text-blue-500 font-bold text-xs uppercase tracking-widest cursor-not-allowed flex items-center gap-2 border border-blue-100" disabled>
+                                <svg class="w-4 h-4 animate-spin text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                </svg>
+                                Deploying...
+                            </button>
+                        @else
+                            <button class="px-6 py-3 rounded-xl bg-zinc-900 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-zinc-900/10 flex items-center gap-2 group-hover:-translate-y-0.5 {{ $isLocked ? "opacity-50 cursor-not-allowed grayscale" : "hover:bg-blue-600" }}" onclick="{{ $isLocked ? "Toast.fire({icon:'warning', title:'Project is locked'})" : "deployConfirm('{$env->id}', '{$env->name}')" }}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                </svg>
+                                {{ $env->status === "stopped" ? "Start" : "Deploy" }}
+                            </button>
+                        @endif
                     @else
                         <button class="px-6 py-3 rounded-xl bg-zinc-100 text-zinc-400 font-bold text-xs uppercase tracking-widest cursor-not-allowed flex items-center gap-2" title="Access Denied: Only Managers/Owners can deploy to Production">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

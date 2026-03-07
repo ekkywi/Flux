@@ -71,9 +71,11 @@ Route::middleware('auth')->group(function () {
         Route::prefix('projects/{project}/environments')->name('projects.environments.')->group(function () {
             Route::post('/', [EnvironmentController::class, 'store'])->name('store');
             Route::delete('/{environment}', [EnvironmentController::class, 'destroy'])->name('destroy');
+            Route::post('/{environment}/stop', [EnvironmentController::class, 'stop'])->name('stop');
 
             // Deployment
             Route::post('/{environment}/deploy', [DeploymentController::class, 'store'])->name('deploy');
+            Route::get('/{environment}/logs', [DeploymentController::class, 'logs'])->name('logs');
         });
     });
 

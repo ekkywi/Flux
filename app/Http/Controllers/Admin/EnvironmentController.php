@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\StoreEnvironmentRequest;
 use App\Models\Project;
 use App\Models\Environment;
+use App\Jobs\StopEnvironment;
 use Illuminate\Support\Facades\Auth;
 
 class EnvironmentController extends Controller
@@ -45,5 +46,14 @@ class EnvironmentController extends Controller
         $environment->delete();
 
         return back()->with('success', 'Environment has been de-provisioned.');
+    }
+
+    public function stop(Project $project, Environment $environment)
+    {
+        $environment->update(['status' => 'stopping']);
+
+        StopEnvironment::dispatch($environment);
+
+        return back()->with('success', 'Stop signal send to servers. Environment is shutting down.');
     }
 }

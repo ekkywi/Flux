@@ -11,29 +11,30 @@ class LaravelBlueprint implements BlueprintInterface
         return <<<EOF
 FROM php:{$phpVersion}-cli
 
-RUN apt-get update && apt-get install -y zip unzip git libpq-dev \\
+# Install system dependencies
+RUN apt-get update && apt-get install -y zip unzip git libpq-dev sqlite3 \
     && docker-php-ext-install pdo pdo_pgsql pdo_mysql
 
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# Cache dependencies
+# Cache dependencies (Layer caching for faster builds)
 COPY composer.json composer.lock* ./
 RUN composer install --no-interaction --no-scripts --no-autoloader --prefer-dist
 
-# Copy source
+# Copy full source code
 COPY . .
 
 # Finalize setup
 RUN composer dump-autoload --optimize --no-scripts
-RUN chmod -R 777 storage bootstrap/cache || true
+RUN chmod -R 777 storage bootstrap/cache database || true
 
 EXPOSE 8000
 
-CMD if [ ! -f .env ]; then cp .env.example .env; fi && \\
-    php artisan key:generate --force && \\
-    php artisan serve --host=0.0.0.0 --port=8000
+# CMD sangat bersih, tidak ada generate key yang berisiko menimpa data
+CMD php artisan serve --host=0.0.0.0 --port=8000
 EOF;
     }
 
@@ -45,9 +46,17 @@ EOF;
 services:
   app:
     build: .
-    restart: always
+    restart: unless-stopped
     ports:
       - "{$port}:8000"
+    volumes:
+      - app_storage:/app/storage
+      - app_database:/app/database
+
+# Named Volumes agar file upload (storage) dan file SQLite (database) abadi
+volumes:
+  app_storage:
+  app_database:
 EOF;
     }
 }

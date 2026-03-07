@@ -14,8 +14,10 @@ return new class extends Migration
             $table->foreignUuid('server_id')->nullable()->constrained('servers')->onDelete('set null');
             $table->foreignUuid('db_server_id')->nullable()->constrained('servers')->nullOnDelete();
             $table->integer('port')->nullable();
+            $table->integer('db_port')->nullable();
             $table->string('name');
             $table->string('branch')->default('main');
+            $table->string('status')->default('uninitialized');
             $table->string('url')->nullable();
             $table->enum('type', ['production', 'staging', 'development'])->default('development');
             $table->timestamps();
