@@ -36,8 +36,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-lg font-bold tracking-tight text-white leading-none">Flux</h1>
-                        <p class="text-[10px] font-medium text-zinc-400 uppercase tracking-widest mt-0.5">Enterprise</p>
+                        <h1 class="text-lg font-bold tracking-tight text-white leading-none">FLUX_</h1>
+                        <p class="text-[10px] font-medium text-zinc-400 uppercase tracking-widest mt-0.5">Infrastructure Core</p>
                     </div>
                 </div>
 
@@ -154,7 +154,7 @@
             </div>
 
             <div class="relative z-10 border-t border-white/5 pt-6 text-center flex-shrink-0">
-                <span class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">v2.4.0 Stable</span>
+                <span class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">v1.0.0 Development</span>
             </div>
         </aside>
 

@@ -544,6 +544,41 @@ window.copyToClipboard = (t, m) => {
   });
 };
 
+window.openEnvSettings = async function (envId, envName, base64Script) {
+  const currentScript = base64Script ? atob(base64Script) : "";
+
+  const { value } = await fluxSwal.fire({
+    title: `${envName} Settings`,
+    width: "600px",
+    html: `
+        <div class="flex flex-col gap-4 text-left">
+            <div>
+                <label class="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-2 mb-2">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Post-Deploy Script
+                </label>
+                <div class="p-3 bg-blue-50 border border-blue-100 rounded-xl mb-3 text-[11px] text-blue-700 leading-relaxed">
+                    This script runs <b>inside the application container</b> automatically every time you click Deploy/Redeploy, right after the container is built and running.
+                </div>
+                <textarea id="edit-deploy-script" rows="8" class="w-full px-4 py-3 bg-zinc-950 text-emerald-400 border border-zinc-800 rounded-xl text-xs font-mono focus:ring-emerald-500 focus:border-emerald-500 shadow-inner" spellcheck="false">${currentScript}</textarea>
+            </div>
+        </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Save Configuration",
+    preConfirm: () => {
+      return {
+        deploy_script: document.getElementById("edit-deploy-script").value,
+      };
+    },
+  });
+
+  if (value) {
+    const updateUrl = config.routes.envDestroy.replace(":envId", envId);
+    submitForm(updateUrl, "PATCH", value);
+  }
+};
+
 window.deployConfirm = (envId, envName) => {
   fluxSwal
     .fire({

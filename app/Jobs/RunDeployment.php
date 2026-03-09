@@ -173,12 +173,26 @@ class RunDeployment implements ShouldQueue
                 "echo 'Starting Application Build & Up...'",
                 "docker compose up -d --build 2>&1",
                 "echo 'Running Laravel Production Setup...'",
-                "sleep 3",
-                "echo 'Running Database Migrations...'",
-                "docker compose exec -T app php artisan migrate --force 2>&1",
-                "echo 'Optimizing Framework...'",
-                "docker compose exec -T app php artisan optimize 2>&1"
+                "sleep 3"
             ];
+
+            $customScript = $environment->deploy_script;
+
+            if (!empty(trim($customScript))) {
+                $appCommands[] = "echo 'Running Custom Post-Deploy Scripts...'";
+                $lines = explode("\n", str_replace("\r", "", $customScript));
+
+                foreach ($lines as $line) {
+                    $line = trim($line);
+
+                    if (!empty($line) && !str_starts_with($line, '#')) {
+                        $appCommands[] = "echo 'Running: {$line}'";
+                        $appCommands[] = "docker compose exec -T app {$line} 2>&1";
+                    }
+                }
+            } else {
+                $appCommands[] = "echo 'No custom deployment script provided. Skipping...'";
+            }
 
             $sshApp->exec(implode(' && ', $appCommands), function ($out) {
                 $lines = explode("\n", trim($out));

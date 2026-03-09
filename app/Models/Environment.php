@@ -19,6 +19,7 @@ class Environment extends Model
         'db_port',
         'name',
         'branch',
+        'deploy_script',
         'status',
         'url',
         'type',

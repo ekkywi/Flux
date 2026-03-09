@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('db_port')->nullable();
             $table->string('name');
             $table->string('branch')->default('main');
+            $table->text('deploy_script')->nullable();
             $table->string('status')->default('uninitialized');
             $table->string('url')->nullable();
             $table->enum('type', ['production', 'staging', 'development'])->default('development');
