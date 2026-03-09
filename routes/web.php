@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{environment}', [EnvironmentController::class, 'destroy'])->name('destroy');
             Route::post('/{environment}/start', [EnvironmentController::class, 'start'])->name('start');
             Route::post('/{environment}/stop', [EnvironmentController::class, 'stop'])->name('stop');
+            Route::post('/{environment}/command', [EnvironmentController::class, 'runCommand'])->name('command');
 
             // Deployment
             Route::post('/{environment}/deploy', [DeploymentController::class, 'store'])->name('deploy');

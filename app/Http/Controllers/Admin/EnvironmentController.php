@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\StoreEnvironmentRequest;
 use App\Models\Project;
 use App\Models\Environment;
+use App\Models\SystemSetting;
 use App\Jobs\StopEnvironment;
 use App\Jobs\StartEnvironment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use phpseclib3\Net\SSH2;
+use phpseclib3\Crypt\RSA;
 
 class EnvironmentController extends Controller
 {
@@ -87,5 +90,76 @@ class EnvironmentController extends Controller
         $environment->update($validated);
 
         return back()->with('success', "Deployment script for {$environment->name} update successfully.");
+    }
+
+    public function runCommand(Request $request, Project $project, Environment $environment)
+    {
+        $this->authorize('update', $project);
+
+        $request->validate([
+            'command' => 'required|string|max:500',
+        ]);
+
+        if ($environment->status !== 'running') {
+            return response()->json([
+                'status' => 'error',
+                'output' => 'Error: Container is no running. Please start the environment first.'
+            ], 400);
+        }
+
+        try {
+            $appServer = $environment->server;
+            if (!$appServer) {
+                throw new \Exception("Validation Error: No server associated with this environment");
+            }
+            if (empty($appServer->ip_address)) {
+                throw new \Exception("Validation Error: Server IP Address is empty.");
+            }
+            if (empty($appServer->ssh_user)) {
+                throw new \Exception("Validation Error: Server SSH Username is empty.");
+            }
+
+            $masterKey = SystemSetting::where('key_name', 'master_ssh_key')->first();
+            if (!$masterKey || empty($masterKey->private_key)) {
+                throw new \Exception("Validation Error: Master SSH Key not found in system settings or is empty.");
+            }
+
+            $privateKey = RSA::load($masterKey->private_key);
+            $ssh = new SSH2($appServer->ip_address, $appServer->ssh_port, 10);
+
+            if (!$ssh->login($appServer->ssh_user, $privateKey)) {
+                throw new \Exception("SSH Login failed to server. Please check your server credentials");
+            }
+
+            $workspace = "~/flux-projects/{$project->id}/{$environment->name}";
+            $userCommand = trim($request->command);
+            $forbiddenPrefixes = ['nano ', 'vi ', 'vim ', 'top', 'htop'];
+
+            foreach ($forbiddenPrefixes as $forbidden) {
+                if (str_starts_with($userCommand, $forbidden)) {
+                    return response()->json([
+                        'status' => 'error',
+                        'output' => "Command '{$userCommand}' is an interactive command and cannot be run from the web terminal."
+                    ], 400);
+                }
+            }
+
+            $fullCommand = "cd {$workspace} && docker compose exec -T app {$userCommand} 2>&1";
+            $ssh->setTimeout(60);
+
+            $output = $ssh->exec($fullCommand);
+
+            $ssh->disconnect();
+
+            return response()->json([
+                'status' => 'success',
+                'output' => trim($output) ?: 'Command executed successfully (no output).'
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'output' => 'Critical Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

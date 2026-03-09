@@ -871,3 +871,108 @@ window.openTerminal = function (envId, envName) {
   if (window.terminalInterval) clearInterval(window.terminalInterval);
   window.terminalInterval = setInterval(fetchLogs, 2000);
 };
+
+// ==========================================
+// 8. AD-HOC WEB TERMINAL (CLI)
+// ==========================================
+
+// Helper untuk mencegah XSS jika output Linux mengandung tag HTML
+window.escapeHtmlCLI = function (text) {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
+window.openWebCLI = function (envId, envName, commandUrl) {
+  fluxSwal.fire({
+    title: `CLI: ${envName}`,
+    width: "800px",
+    showConfirmButton: false,
+    showCloseButton: true,
+    html: `
+            <div class="bg-zinc-950 rounded-xl p-4 h-[400px] flex flex-col font-mono text-xs text-left shadow-inner mt-2">
+                <div class="text-zinc-500 mb-2 border-b border-zinc-800 pb-2">
+                    Connected to container app. Type a command (e.g., <span class="text-emerald-500">php artisan about</span>) and press Enter.
+                </div>
+                
+                <div id="cli-output-${envId}" class="flex-1 overflow-y-auto whitespace-pre-wrap break-all text-zinc-300 pb-2 leading-relaxed"></div>
+                
+                <div class="flex items-center gap-2 text-emerald-400 pt-2 shrink-0">
+                    <span class="font-bold">$&gt;</span>
+                    <input type="text" id="cli-input-${envId}" class="flex-1 bg-transparent border-none outline-none text-emerald-400 focus:ring-0 p-0 font-mono text-xs placeholder-zinc-700" autocomplete="off" spellcheck="false" placeholder="Enter command...">
+                </div>
+            </div>
+        `,
+    didOpen: () => {
+      const inputField = document.getElementById(`cli-input-${envId}`);
+      const outputArea = document.getElementById(`cli-output-${envId}`);
+
+      // Auto-focus kursor saat modal terbuka
+      inputField.focus();
+
+      // Dengarkan tombol Enter
+      inputField.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter") {
+          const cmd = inputField.value.trim();
+          if (!cmd) return;
+
+          // 1. Tampilkan perintah yang diketik user ke layar (Warna Abu-abu)
+          outputArea.innerHTML += `<div><span class="text-zinc-500">$&gt; ${escapeHtmlCLI(cmd)}</span></div>`;
+
+          // 2. Kosongkan input & disable sementara
+          inputField.value = "";
+          inputField.disabled = true;
+
+          // 3. Tampilkan animasi loading
+          const loadingId = `cli-loading-${Date.now()}`;
+          outputArea.innerHTML += `<div id="${loadingId}" class="text-zinc-600 animate-pulse">Running...</div>`;
+          outputArea.scrollTop = outputArea.scrollHeight; // Scroll ke bawah
+
+          try {
+            // 4. Kirim perintah ke Laravel Controller
+            const response = await fetch(commandUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": csrfToken,
+                Accept: "application/json",
+              },
+              body: JSON.stringify({ command: cmd }),
+            });
+
+            const data = await response.json();
+
+            // Hapus animasi loading
+            document.getElementById(loadingId).remove();
+
+            // 5. Cetak balasan dari server
+            if (data.status === "success") {
+              outputArea.innerHTML += `<div class="text-emerald-300 mb-2">${escapeHtmlCLI(data.output)}</div>`;
+            } else {
+              outputArea.innerHTML += `<div class="text-rose-400 mb-2">${escapeHtmlCLI(data.output)}</div>`;
+            }
+          } catch (error) {
+            document.getElementById(loadingId).remove();
+            outputArea.innerHTML += `<div class="text-rose-500 mb-2">Network Error: Request failed.</div>`;
+          }
+
+          // 6. Kembalikan kursor input
+          inputField.disabled = false;
+          inputField.focus();
+          outputArea.scrollTop = outputArea.scrollHeight;
+        }
+      });
+
+      // Fokuskan kembali input jika user mengklik area hitam
+      document
+        .getElementById(`cli-output-${envId}`)
+        .addEventListener("click", () => {
+          inputField.focus();
+        });
+    },
+  });
+};
