@@ -90,18 +90,8 @@
                     @endphp
 
                     @if ($canDeploy)
-                        @if ($env->status === "running")
-                            <form action="{{ route("console.projects.environments.stop", [$project, $env]) }}" class="m-0" id="stop-form-{{ $env->id }}" method="POST">
-                                @csrf
-                                <button class="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-rose-600/20 flex items-center gap-2 group-hover:-translate-y-0.5" onclick="stopConfirm('{{ $env->id }}', '{{ $env->name }}')" type="button">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-                                        <path d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-                                    </svg>
-                                    Stop
-                                </button>
-                            </form>
-                        @elseif($env->status === "stopping")
+                        {{-- STATE 1: SEDANG PROSES (DISABLED) --}}
+                        @if ($env->status === "stopping")
                             <button class="px-6 py-3 rounded-xl bg-zinc-100 text-zinc-400 font-bold text-xs uppercase tracking-widest cursor-not-allowed flex items-center gap-2" disabled>
                                 <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
@@ -115,12 +105,44 @@
                                 </svg>
                                 Deploying...
                             </button>
+                        @elseif($env->status === "starting")
+                            <button class="px-6 py-3 rounded-xl bg-emerald-50 text-emerald-500 font-bold text-xs uppercase tracking-widest cursor-not-allowed flex items-center gap-2 border border-emerald-100" disabled>
+                                <svg class="w-4 h-4 animate-spin text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                                </svg>
+                                Starting...
+                            </button>
                         @else
+                            {{-- STATE 2: IDLE (BISA MELAKUKAN ACTION) --}}
+
+                            {{-- A. Tombol Power (Start/Stop) - Hanya muncul jika sudah pernah di-deploy --}}
+                            @if ($env->status === "running")
+                                <form action="{{ route("console.projects.environments.stop", [$project, $env]) }}" class="m-0" id="stop-form-{{ $env->id }}" method="POST">
+                                    @csrf
+                                    <button class="px-4 py-3 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2" onclick="stopConfirm('{{ $env->id }}', '{{ $env->name }}')" title="Stop Container" type="button">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M6 6h12v12H6z" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            @elseif ($env->status === "stopped")
+                                {{-- 🔥 PERBAIKAN: Form khusus untuk Start Container --}}
+                                <form action="{{ route("console.projects.environments.start", [$project, $env]) }}" class="m-0" id="start-form-{{ $env->id }}" method="POST">
+                                    @csrf
+                                    <button class="px-4 py-3 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2" onclick="startConfirm('{{ $env->id }}', '{{ $env->name }}')" title="Start Container" type="button">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            @endif
+
+                            {{-- B. Tombol Deployment (Deploy / Redeploy) - Selalu Muncul --}}
                             <button class="px-6 py-3 rounded-xl bg-zinc-900 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-zinc-900/10 flex items-center gap-2 group-hover:-translate-y-0.5 {{ $isLocked ? "opacity-50 cursor-not-allowed grayscale" : "hover:bg-blue-600" }}" onclick="{{ $isLocked ? "Toast.fire({icon:'warning', title:'Project is locked'})" : "deployConfirm('{$env->id}', '{$env->name}')" }}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                                 </svg>
-                                {{ $env->status === "stopped" ? "Start" : "Deploy" }}
+                                {{ $env->status === "uninitialized" ? "Deploy Now" : "Redeploy" }}
                             </button>
                         @endif
                     @else

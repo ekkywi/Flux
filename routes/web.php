@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('projects/{project}/environments')->name('projects.environments.')->group(function () {
             Route::post('/', [EnvironmentController::class, 'store'])->name('store');
             Route::delete('/{environment}', [EnvironmentController::class, 'destroy'])->name('destroy');
+            Route::post('/{environment}/start', [EnvironmentController::class, 'start'])->name('start');
             Route::post('/{environment}/stop', [EnvironmentController::class, 'stop'])->name('stop');
 
             // Deployment

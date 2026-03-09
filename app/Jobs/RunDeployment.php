@@ -56,13 +56,9 @@ class RunDeployment implements ShouldQueue
             $dbUser = 'flux_user';
             $dbPass = substr(hash('sha256', $environment->id . $project->id . env('APP_KEY')), 0, 16);
 
-            // Default Fallback
             $dbHost = '127.0.0.1';
             $dbPort = '3306';
 
-            // ==========================================
-            // TAHAP 1: DEPLOY DATABASE SERVER
-            // ==========================================
             if (in_array($dbType, ['mysql', 'pgsql', 'mariadb'])) {
                 $dbServer = $environment->dbServer;
 
@@ -72,7 +68,6 @@ class RunDeployment implements ShouldQueue
 
                 $this->log("Initializing Database Deployment on [{$dbServer->ip_address}]...");
 
-                // 🔥 LOGIKA ALOKASI PORT DATABASE DINAMIS
                 if (!$environment->db_port) {
                     $highestDbPort = Environment::where('db_server_id', $dbServer->id)->max('db_port');
                     $basePort = ($dbType === 'pgsql') ? 5432 : 3306;
@@ -89,11 +84,9 @@ class RunDeployment implements ShouldQueue
                 $sshDb->setTimeout(0);
 
                 $dbWorkspace = "~/flux-databases/{$project->id}/{$environment->name}";
-                // Kirim $dbPort ke Blueprint
                 $dbCompose = DatabaseBlueprint::getCompose($dbType, $dbName, $dbUser, $dbPass, $dbVersion, $dbPort);
                 $b64DbCompose = base64_encode(trim($dbCompose));
 
-                // 🔥 LOGIKA HEALTHCHECK NATIVE DB
                 $pingCmd = ($dbType === 'pgsql')
                     ? "docker compose exec -T db pg_isready -U {$dbUser} -d {$dbName}"
                     : "docker compose exec -T -e MYSQL_PWD='{$dbPass}_root' db mysqladmin ping -h 127.0.0.1 -u root --silent";
@@ -122,9 +115,6 @@ class RunDeployment implements ShouldQueue
                 $this->log("Database provisioning completed.");
             }
 
-            // ==========================================
-            // TAHAP 2: DEPLOY APPLICATION SERVER
-            // ==========================================
             $this->log("Initializing Application Deployment on [{$appServer->ip_address}]...");
 
             $sshApp = new SSH2($appServer->ip_address, $appServer->ssh_port, 10);
@@ -139,7 +129,6 @@ class RunDeployment implements ShouldQueue
             $rawKey = hash('sha256', $environment->id . $project->id . env('APP_KEY'), true);
             $appKey = 'base64:' . base64_encode($rawKey);
 
-            // 🔥 LOGIKA ALOKASI PORT APLIKASI DINAMIS
             if (!$environment->port) {
                 $highestPort = Environment::where('server_id', $appServer->id)->max('port');
                 $newPort = ($highestPort && $highestPort >= 8000) ? $highestPort + 1 : 8000;
@@ -147,7 +136,6 @@ class RunDeployment implements ShouldQueue
             }
             $appPort = $environment->port;
 
-            // 🔥 FIX: Definisikan $laravelDbConnection untuk MariaDB
             $laravelDbConnection = ($dbType === 'mariadb') ? 'mysql' : $dbType;
 
             if ($dbType === 'sqlite') {
@@ -172,7 +160,6 @@ class RunDeployment implements ShouldQueue
             $b64Dockerfile = base64_encode($blueprint->getDockerfile($buildOptions));
             $b64Compose = base64_encode($blueprint->getDockerCompose($buildOptions));
 
-            // 🔥 COMMANDS YANG SUDAH DIBERSIHKAN DARI ERROR MIGRATION
             $appCommands = [
                 "mkdir -p {$workspace}",
                 "cd {$workspace}",
@@ -186,7 +173,7 @@ class RunDeployment implements ShouldQueue
                 "echo 'Starting Application Build & Up...'",
                 "docker compose up -d --build 2>&1",
                 "echo 'Running Laravel Production Setup...'",
-                "sleep 3", // Memberi waktu container PHP menyala
+                "sleep 3",
                 "echo 'Running Database Migrations...'",
                 "docker compose exec -T app php artisan migrate --force 2>&1",
                 "echo 'Optimizing Framework...'",

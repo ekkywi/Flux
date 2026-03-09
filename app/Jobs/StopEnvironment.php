@@ -33,7 +33,7 @@ class StopEnvironment implements ShouldQueue
             if ($sshApp->login($appServer->ssh_user, $privateKey)) {
                 $sshApp->setTimeout(0);
                 $workspace = "~/flux-projects/{$project->id}/{$this->environment->name}";
-                $sshApp->exec("cd {$workspace} && docker compose down 2>&1");
+                $sshApp->exec("cd {$workspace} && docker compose stop 2>&1");
                 $sshApp->disconnect();
             }
 
@@ -44,7 +44,7 @@ class StopEnvironment implements ShouldQueue
                 if ($sshDb->login($dbServer->ssh_user, $privateKey)) {
                     $sshDb->setTimeout(0);
                     $dbWorkspace = "~/flux-databases/{$project->id}/{$this->environment->name}";
-                    $sshDb->exec("cd {$dbWorkspace} && docker compose down 2>&1");
+                    $sshDb->exec("cd {$dbWorkspace} && docker compose stop 2>&1");
                     $sshDb->disconnect();
                 }
             }

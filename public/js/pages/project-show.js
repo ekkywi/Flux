@@ -594,6 +594,63 @@ window.deployConfirm = (envId, envName) => {
     });
 };
 
+window.startConfirm = (envId, envName) => {
+  fluxSwal
+    .fire({
+      title: "Start Environment?",
+      html: `Are you sure you want to start <b>${envName}</b>?<br><br><span class='text-xs text-zinc-500 block text-left mt-2'>This will boot up the existing containers without pulling new code or resetting the database.</span>`,
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Start it!",
+      confirmButtonColor: "#10b981",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        try {
+          const startUrl = config.routes.envDeploy
+            .replace(":envId", envId)
+            .replace("/deploy", "/start");
+
+          const response = await fetch(startUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-TOKEN": csrfToken,
+              Accept: "application/json",
+            },
+          });
+
+          if (response.redirected) {
+            return { message: "Start signal sent successfully" };
+          }
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.message || "Failed to send start signal");
+          }
+
+          return data;
+        } catch (error) {
+          submitForm(
+            config.routes.envDeploy
+              .replace(":envId", envId)
+              .replace("/deploy", "/start"),
+            "POST",
+          );
+          return false;
+        }
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+    })
+    .then((result) => {
+      if (result.isConfirmed && result.value) {
+        showNativeToast(`Start signal sent to ${envName}`, "success");
+      }
+    });
+};
+
 window.stopConfirm = (envId, envName) => {
   fluxSwal
     .fire({

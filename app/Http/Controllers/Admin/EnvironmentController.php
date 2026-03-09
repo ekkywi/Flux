@@ -7,6 +7,7 @@ use App\Http\Requests\Project\StoreEnvironmentRequest;
 use App\Models\Project;
 use App\Models\Environment;
 use App\Jobs\StopEnvironment;
+use App\Jobs\StartEnvironment;
 use Illuminate\Support\Facades\Auth;
 
 class EnvironmentController extends Controller
@@ -46,6 +47,17 @@ class EnvironmentController extends Controller
         $environment->delete();
 
         return back()->with('success', 'Environment has been de-provisioned.');
+    }
+
+    public function start(Project $project, Environment $environment)
+    {
+        $this->authorize('deploy', [$project, $environment]);
+
+        $environment->update(['status' => 'starting']);
+
+        StartEnvironment::dispatch($environment);
+
+        return back()->with('success', 'Environment is starting up...');
     }
 
     public function stop(Project $project, Environment $environment)
