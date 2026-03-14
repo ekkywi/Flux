@@ -224,6 +224,50 @@ class RunDeployment implements ShouldQueue
             ]);
 
             $this->log('CRITICAL ERROR: ' . $e->getMessage(), 'error');
+
+            $this->log('Anti-Stall System Activated: Cleaning up failed state...');
+
+            try {
+                $env = $this->deployment->environment;
+
+                if ($env && $env->status !== 'running') {
+                    $proj = $env->project;
+                    $appSrv = $env->server;
+                    $dbSrv = $env->dbServer;
+
+                    $masterKey = SystemSetting::where('key_name', 'master_ssh_key')->first();
+                    if ($masterKey && !empty($masterKey->private_key)) {
+                        $privKey = RSA::load($masterKey->private_key);
+
+                        if ($appSrv) {
+                            $sshApp = new SSH2($appSrv->ip_address, $appSrv->ssh_port, 10);
+                            if ($sshApp->login($appSrv->ssh_user, $privKey)) {
+                                $workspace = "~/flux-projects/{$proj->id}/{$env->name}";
+                                $sshApp->exec("cd {$workspace} && docker compose down -v 2>/dev/null || true");
+                                $sshApp->exec("rm -rf {$workspace}");
+                                $this->log('[Anti-Stall] App Server cleanup successful. Ports released.');
+                                $sshApp->disconnect();
+                            }
+                        }
+
+                        $dbType = strtolower(trim($proj->build_options['database_type'] ?? 'sqlite'));
+                        if ($dbSrv && in_array($dbType, ['mysql', 'pgsql', 'mariadb'])) {
+                            $sshDb = new SSH2($dbSrv->ip_address, $dbSrv->ssh_port, 10);
+                            if ($sshDb->login($dbSrv->ssh_user, $privKey)) {
+                                $dbWorkspace = "~/flux-databases/{$proj->id}/{$env->name}";
+                                $sshDb->exec("cd {$dbWorkspace} && docker compose down -v 2>/dev/null || true");
+                                $sshDb->exec("rm -rf {$dbWorkspace}");
+                                $this->log('[Anti-Stall] DB Server cleanup successful. Ports released.');
+                                $sshDb->disconnect();
+                            }
+                        }
+                    }
+                } else {
+                    $this->log('[Anti-Stall] Bypassed: Environment was already running previously. Preserving existing data & volumes.');
+                }
+            } catch (Throwable $cleanupError) {
+                $this->log('[Anti-Stall] Cleanup Failed: ' . $cleanupError->getMessage(), 'error');
+            }
         }
     }
 }

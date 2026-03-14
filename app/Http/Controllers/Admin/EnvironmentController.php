@@ -56,9 +56,41 @@ class EnvironmentController extends Controller
             }
         }
 
+        try {
+            $masterKey = SystemSetting::where('key_name', 'master_ssh_key')->first();
+            if ($masterKey && !empty($masterKey->private_key)) {
+                $privateKey = RSA::load($masterKey->private_key);
+                $appServer = $environment->server;
+                if ($appServer) {
+                    $sshApp = new SSH2($appServer->ip_address, $appServer->ssh_port, 10);
+                    if ($sshApp->login($appServer->ssh_user, $privateKey)) {
+                        $workspace = "~/flux-projects/{$project->id}/{$environment->name}";
+                        $sshApp->exec("cd {$workspace} && docker compose down -v 2>/dev/null || true");
+                        $sshApp->exec("rm -rf {$workspace}");
+                        $sshApp->disconnect();
+                    }
+                }
+
+                $dbServer = $environment->dbServer;
+                $dbType = strtolower(trim($project->build_options['database_type'] ?? 'sqlite'));
+
+                if ($dbServer && in_array($dbType, ['mysql', 'pgsql', 'mariadb'])) {
+                    $sshDb = new SSH2($dbServer->ip_address, $dbServer->ssh_port, 10);
+                    if ($sshDb->login($dbServer->ssh_user, $privateKey)) {
+                        $dbWorkspace = "~/flux-databases/{$project->id}/{$environment->name}";
+                        $sshDb->exec("cd {$dbWorkspace} && docker compose down -v 2>/dev/null || true");
+                        $sshDb->exec("rm -rf {$dbWorkspace}");
+                        $sshDb->disconnect();
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::error("Teardown Failed for Env OD {$environment->id}: " . $e->getMessage());
+        }
+
         $environment->delete();
 
-        return back()->with('success', 'Environment has been de-provisioned.');
+        return back()->with('success', 'Environment and its infrastructure have been completely de-provisioned.');
     }
 
     public function start(Project $project, Environment $environment)
