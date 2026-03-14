@@ -378,7 +378,7 @@ window.openAddEnvModal = async function () {
   });
 
   try {
-    // Fetch Daftar Server (Pastikan route ini benar di sistem Anda)
+    // Fetch Daftar Server
     const response = await fetch("/internal/servers-list");
     const servers = await response.json();
 
@@ -460,6 +460,19 @@ window.openAddEnvModal = async function () {
 
             ${dbServerHtml}
 
+            <div class="mt-2 p-4 rounded-xl border border-zinc-200 bg-zinc-50 text-left">
+                <label class="flex items-center cursor-pointer gap-3">
+                    <div class="relative shrink-0">
+                        <input type="checkbox" name="install_ioncube" id="install_ioncube" value="1" class="sr-only peer">
+                        <div class="w-11 h-6 bg-zinc-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-zinc-900">Enable ionCube Loader</div>
+                        <div class="text-[11px] text-zinc-500 mt-0.5 leading-tight">Install PHP extension to run encrypted source code (zend_extension).</div>
+                    </div>
+                </label>
+            </div>
+
             <div>
                 <div class="flex justify-between mb-1">
                     <label class="text-[10px] font-bold text-zinc-400 uppercase">Branch</label>
@@ -487,6 +500,12 @@ window.openAddEnvModal = async function () {
         const n = document.getElementById("new-env-name").value;
         const s = document.getElementById("new-env-server").value;
 
+        // 🔥 Tangkap nilai checkbox ionCube
+        const ioncubeCheckbox = document.getElementById("install_ioncube");
+        const installIoncube = ioncubeCheckbox
+          ? ioncubeCheckbox.checked
+          : false;
+
         // Cek target DB secara aman
         const dbSelect = document.getElementById("new-env-db-server");
         const db_s = dbSelect ? dbSelect.value : null;
@@ -503,10 +522,12 @@ window.openAddEnvModal = async function () {
           db_server_id: db_s,
           type: document.querySelector('input[name="env_type"]:checked').value,
           branch: document.getElementById("new-env-branch").value,
+          install_ioncube: installIoncube ? 1 : 0, // 🔥 Kirim data ini ke Laravel Controller
         };
       },
     });
 
+    // Jika form disubmit dan lolos validasi, kirim ke Backend
     if (value) submitForm(config.routes.envStore, "POST", value);
   } catch (error) {
     console.error(error);

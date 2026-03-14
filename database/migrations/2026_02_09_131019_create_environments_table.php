@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('status')->default('uninitialized');
             $table->string('url')->nullable();
             $table->enum('type', ['production', 'staging', 'development'])->default('development');
+            $table->boolean('install_ioncube')->default(false);
             $table->timestamps();
         });
     }

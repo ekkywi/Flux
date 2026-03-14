@@ -20,7 +20,9 @@ class EnvironmentController extends Controller
     {
         $data = $request->validated();
 
-        $defaultScript = "php artisan migrate --force\nphp artisan optimize:clear\nphp artisan optimize";
+        $data['install_ioncube'] = $request->has('install_ioncube');
+
+        $defaultScript = "sleep 10\nphp artisan migrate --force\nphp artisan optimize:clear\nphp artisan optimize";
 
         $data['deploy_script'] = $defaultScript;
 

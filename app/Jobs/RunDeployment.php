@@ -155,6 +155,7 @@ class RunDeployment implements ShouldQueue
             $stack = strtolower($project->stack ?? 'laravel');
             $buildOptions = $project->build_options ?? [];
             $buildOptions['port'] = $appPort;
+            $buildOptions['install_ioncube'] = $environment->install_ioncube;
             $blueprint = BlueprintFactory::make($stack);
 
             $b64Dockerfile = base64_encode($blueprint->getDockerfile($buildOptions));

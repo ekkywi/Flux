@@ -23,6 +23,7 @@ class Environment extends Model
         'status',
         'url',
         'type',
+        'install_ioncube'
     ];
 
     public function project(): BelongsTo
