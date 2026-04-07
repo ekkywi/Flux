@@ -1,253 +1,207 @@
 @extends("layouts.app")
-@section("title", "Approval Center")
-@section("page_title", "Access Pipeline")
+@section("title", "Access Pipeline")
+@section("page_title", "Access Control")
+@section("page_subtitle", "Provisioning identities and security clearance.")
 
 @section("content")
-    {{-- Container diubah menjadi space-y-8 tanpa max-w agar lebar konten sama dengan Dashboard --}}
-    <div class="space-y-8 pb-20 text-slate-900">
+    <div class="space-y-6 pb-20">
 
-        {{-- 1. STREAMLINED HEADER --}}
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-2">
-            <div class="space-y-1">
-                <div class="flex items-center gap-2 text-indigo-600 mb-1">
-                    <div class="h-1 w-6 bg-indigo-600 rounded-full"></div>
-                    <span class="text-[9px] font-black uppercase tracking-[0.2em]">Security Protocol</span>
+        {{-- 1. CONTROL BAR --}}
+        <div class="sticky top-0 z-30 flex flex-col gap-4 rounded-2xl bg-white/80 p-2 backdrop-blur-xl border border-zinc-200 shadow-sm md:flex-row md:items-center md:justify-between transition-all">
+            <div class="flex items-center gap-3 px-4">
+                <div class="relative flex h-3 w-3">
+                    @if ($pendingRequests->count() > 0)
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                    @else
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    @endif
                 </div>
-                <h1 class="text-3xl font-black tracking-tight text-slate-900">Access Control</h1>
-                <p class="text-xs text-slate-500 font-medium">Provisioning identities for <span class="text-indigo-600 font-bold">{{ $pendingRequests->count() }} pending requests</span>.</p>
+                <div>
+                    <h2 class="text-sm font-bold text-zinc-900 leading-none">Security Gate</h2>
+                    <p class="text-[10px] font-medium text-zinc-500 mt-0.5">
+                        <span class="font-bold text-zinc-900">{{ $pendingRequests->count() }}</span> pending requests
+                    </p>
+                </div>
             </div>
 
-            {{-- Compact Stats --}}
-            <div class="flex items-center gap-4 px-5 py-2.5 bg-white border border-slate-200 rounded-xl shadow-sm">
-                <div class="text-center min-w-[50px]">
-                    <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Active</span>
-                    <span class="text-sm font-black text-slate-900">{{ \App\Models\User::where("is_active", true)->count() }}</span>
+            <div class="flex items-center gap-2 pl-2 overflow-x-auto no-scrollbar">
+                <div class="flex items-center gap-3 px-4 py-2 bg-zinc-50/50 border border-zinc-200/50 rounded-xl">
+                    <div class="flex flex-col">
+                        <span class="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">Total Active</span>
+                        <span class="text-xs font-bold text-zinc-700 mt-0.5">{{ \App\Models\User::where("is_active", true)->count() }} Users</span>
+                    </div>
                 </div>
-
-                <div class="w-px h-6 bg-slate-100"></div>
-
-                <div class="text-center min-w-[50px]">
-                    <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Pending</span>
-                    <span class="text-sm font-black {{ $pendingRequests->count() > 0 ? "text-rose-600 animate-pulse" : "text-slate-900" }}">
-                        {{ $pendingRequests->count() }}
-                    </span>
-                </div>
-
-                <div class="w-px h-6 bg-slate-100"></div>
-
-                <div class="text-center min-w-[80px]">
-                    <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Server Time</span>
-                    <span class="text-xs font-mono font-bold text-indigo-600" id="serverClock">00:00:00</span>
+                <div class="h-8 w-px bg-zinc-200 mx-1"></div>
+                <div class="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-xl shadow-sm">
+                    <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                    </svg>
+                    <span class="text-xs font-mono font-bold tracking-wider" id="serverClock">00:00:00</span>
                 </div>
             </div>
         </div>
 
-        {{-- 2. COMPACT PIPELINE LIST --}}
-        <div class="grid grid-cols-1 gap-4">
+        {{-- 2. PIPELINE LIST --}}
+        <div class="space-y-3">
             @forelse($pendingRequests as $request)
-                <div class="group bg-white border border-slate-200 rounded-[1.5rem] p-2 transition-all duration-300 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/5">
+                <div class="group relative flex flex-col md:flex-row md:items-center gap-4 rounded-2xl bg-white p-4 shadow-sm border border-zinc-200 hover:border-blue-500/30 hover:shadow-md transition-all duration-200">
 
-                    <div class="flex flex-col lg:flex-row lg:items-center">
-
-                        {{-- SECTION A: USER IDENTITY & REQUEST TYPE (280px) --}}
-                        <div class="lg:w-[280px] p-4 flex flex-col bg-slate-50/50 rounded-[1.2rem] border border-transparent group-hover:bg-indigo-50/30 transition-all duration-300">
-                            {{-- Request Type Badge --}}
-                            <div class="mb-3">
+                    {{-- Identity --}}
+                    <div class="flex items-center gap-4 md:w-[280px] shrink-0">
+                        <div class="h-10 w-10 rounded-xl bg-zinc-50 border border-zinc-100 flex items-center justify-center text-sm font-black text-zinc-700 group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0 shadow-sm">
+                            {{ substr($request->user->first_name, 0, 1) }}
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="text-sm font-bold text-zinc-900 group-hover:text-blue-600 truncate transition-colors">
+                                {{ $request->user->first_name }} {{ $request->user->last_name }}
+                            </h3>
+                            <div class="flex items-center gap-2 mt-0.5">
                                 @php
-                                    $typeClasses = match ($request->request_type) {
-                                        \App\Enums\ApprovalType::ACCOUNT_REQUEST => "bg-indigo-100 text-indigo-700 border-indigo-200",
-                                        \App\Enums\ApprovalType::RESET_PASSWORD => "bg-rose-100 text-rose-700 border-rose-200",
-                                        \App\Enums\ApprovalType::SERVER_ACCESS => "bg-amber-100 text-amber-700 border-amber-200",
-                                        default => "bg-slate-100 text-slate-700 border-slate-200",
+                                    $badgeColor = match ($request->request_type) {
+                                        \App\Enums\ApprovalType::ACCOUNT_REQUEST => "bg-blue-50 text-blue-600 border-blue-100",
+                                        \App\Enums\ApprovalType::RESET_PASSWORD => "bg-rose-50 text-rose-600 border-rose-100",
+                                        \App\Enums\ApprovalType::SERVER_ACCESS => "bg-amber-50 text-amber-600 border-amber-100",
+                                        default => "bg-zinc-50 text-zinc-600 border-zinc-100",
                                     };
                                 @endphp
-                                <span class="px-2 py-0.5 border {{ $typeClasses }} text-[8px] font-black uppercase tracking-widest rounded-md">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border {{ $badgeColor }}">
                                     {{ $request->request_type->label() }}
                                 </span>
                             </div>
+                        </div>
+                    </div>
 
-                            <div class="flex items-center gap-4">
-                                <div class="relative flex-shrink-0">
-                                    <div class="h-10 w-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-300 shadow-sm group-hover:border-indigo-200 transition-all">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-width="2" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="min-w-0">
-                                    <h3 class="font-bold truncate tracking-tight text-sm text-slate-900">{{ $request->user->first_name }} {{ $request->user->last_name }}</h3>
-                                    <p class="text-[10px] font-mono text-slate-400 truncate">{{ $request->user->email }}</p>
-                                </div>
-                            </div>
+                    {{-- Justification --}}
+                    <div class="flex-1 md:px-6 md:border-l md:border-zinc-100">
+                        <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Reason / Context</p>
+                        <p class="text-xs text-zinc-600 font-medium italic leading-relaxed line-clamp-2 md:line-clamp-1">
+                            "{{ $request->justification ?? "No specific justification provided." }}"
+                        </p>
+                    </div>
+
+                    {{-- Actions --}}
+                    <div class="flex items-center justify-between md:justify-end gap-4 md:w-auto md:pl-6 md:border-l md:border-zinc-100 mt-4 md:mt-0">
+                        <div class="text-right hidden xl:block">
+                            <span class="block text-[9px] font-mono text-zinc-400">{{ $request->created_at->format("M d, Y") }}</span>
+                            <span class="block text-[9px] font-mono text-zinc-500 font-bold">{{ $request->created_at->format("H:i") }}</span>
                         </div>
 
-                        {{-- SECTION B: JUSTIFICATION (Flexible) --}}
-                        <div class="flex-1 px-8 py-4 lg:py-0">
-                            <div class="flex items-center gap-2 mb-1.5">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Reason / Justification</span>
-                                <div class="h-px flex-1 bg-slate-100"></div>
-                            </div>
-                            <p class="text-xs text-slate-600 leading-relaxed font-medium italic line-clamp-2 pr-6 border-l-2 border-slate-100 pl-4">
-                                "{{ $request->justification ?? "No justification provided." }}"
-                            </p>
-                        </div>
+                        <div class="flex items-center gap-2">
+                            <form action="{{ route("admin.approvals.reject", $request) }}" class="reject-form" method="POST">
+                                @csrf
+                                <input class="reject-reason-input" name="reason" type="hidden">
+                                <button class="btn-reject p-2 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all" data-user="{{ $request->user->first_name }}" type="button">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                    </svg>
+                                </button>
+                            </form>
 
-                        {{-- SECTION C: ACTION PANEL (320px) --}}
-                        <div class="lg:w-[320px] flex items-center gap-4 pl-6 lg:border-l border-slate-100">
-
-                            {{-- Meta Info --}}
-                            <div class="hidden xl:flex flex-col text-right min-w-[100px]">
-                                <span class="text-[8px] font-bold text-slate-300 uppercase tracking-widest leading-none">Received</span>
-                                <span class="text-[10px] font-mono font-bold text-slate-500 mt-1">{{ $request->created_at->format("d.m.y // H:i") }}</span>
-                            </div>
-
-                            {{-- Proportional Action Buttons --}}
-                            <div class="flex-1 grid grid-cols-2 gap-2">
-                                {{-- Reject Form --}}
-                                <form action="{{ route("admin.approvals.reject", $request) }}" class="reject-form w-full" method="POST">
-                                    @csrf
-                                    <input class="reject-reason-input" name="reason" type="hidden">
-                                    <button class="btn-reject w-full flex items-center justify-center gap-1.5 h-10 px-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all duration-300 group/reject overflow-hidden" data-user="{{ $request->user->first_name }} {{ $request->user->last_name }}" type="button">
-                                        {{-- Tambah Ikon Reject agar simetris --}}
-                                        <svg class="w-3.5 h-3.5 flex-shrink-0 group-hover/reject:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path d="M6 18L18 6M6 6l12 12" stroke-width="2.5" />
-                                        </svg>
-                                        <span class="text-[9px] font-black uppercase tracking-wider">Reject</span>
-                                    </button>
-                                </form>
-
-                                {{-- Approve Form --}}
-                                <form action="{{ route("admin.approvals.approve", $request) }}" class="approval-form w-full" method="POST">
-                                    @csrf
-                                    <button class="btn-approve w-full h-10 px-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all duration-300 shadow-sm hover:shadow-indigo-500/20 flex items-center justify-center gap-1.5 group/btn overflow-hidden" data-user="{{ $request->user->first_name }} {{ $request->user->last_name }}" type="button">
-                                        <span class="text-[9px] font-black uppercase tracking-wider">Authorize</span>
-                                        <svg class="w-3.5 h-3.5 flex-shrink-0 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path d="M13 5l7 7-7 7M5 12h14" stroke-width="2.5" />
-                                        </svg>
-                                    </button>
-                                </form>
-                            </div>
+                            <form action="{{ route("admin.approvals.approve", $request) }}" class="approval-form" method="POST">
+                                @csrf
+                                <button class="btn-approve flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white hover:bg-blue-600 rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all shadow-sm hover:shadow-blue-500/20 active:scale-95 border border-transparent" data-user="{{ $request->user->first_name }}" type="button">
+                                    <span>Approve</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                    </svg>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
             @empty
-                <div class="bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-24 text-center">
-                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path d="M5 13l4 4L19 7" stroke-width="3" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-black text-slate-900 tracking-tight leading-none">Pipeline Clear</h3>
-                    <p class="text-slate-500 text-xs mt-2">All identities have been authorized.</p>
+                <div class="py-20 text-center rounded-3xl border-2 border-dashed border-zinc-200 bg-zinc-50/50">
+                    <h3 class="text-zinc-900 font-bold text-lg">All Clear</h3>
+                    <p class="text-zinc-500 text-sm mt-1">No pending access requests.</p>
                 </div>
             @endforelse
         </div>
     </div>
 @endsection
 
+{{-- KEMBALIKAN KE @PUSH AGAR RAPI --}}
 @push("scripts")
     <script>
-        // 1. Clock Sync
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-GB', {
-                hour12: false
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. CLOCK
+            function updateClock() {
+                const now = new Date();
+                const clockElement = document.getElementById('serverClock');
+                if (clockElement) clockElement.textContent = now.toLocaleTimeString('en-GB', {
+                    hour12: false
+                });
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            // 2. SWEETALERT
+            const fluxSwal = Swal.mixin({
+                customClass: {
+                    popup: 'rounded-2xl border border-zinc-200 shadow-2xl p-0 overflow-hidden',
+                    title: 'text-zinc-900 text-lg font-bold pt-6 px-6',
+                    htmlContainer: 'text-zinc-500 text-sm px-6 pb-2',
+                    confirmButton: 'bg-zinc-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-colors shadow-sm mx-2 mb-6',
+                    cancelButton: 'bg-white text-zinc-600 border border-zinc-200 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-zinc-50 transition-colors mx-2 mb-6',
+                    input: 'bg-zinc-50 border border-zinc-200 text-zinc-900 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all mx-6 mb-4 w-auto'
+                },
+                buttonsStyling: false
             });
-            const clockElement = document.getElementById('serverClock');
-            if (clockElement) clockElement.textContent = timeStr;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
 
-        // 2. SweetAlert (English UI)
-        document.querySelectorAll('.btn-approve').forEach(button => {
-            button.addEventListener('click', function() {
-                const form = this.closest('.approval-form');
-                const userName = this.getAttribute('data-user');
+            document.querySelectorAll('.btn-approve').forEach(button => {
+                button.addEventListener('click', function() {
+                    const form = this.closest('.approval-form');
+                    const userName = this.getAttribute('data-user');
+                    fluxSwal.fire({
+                        title: 'Authorize Access?',
+                        html: `Granting system privileges to <b class="text-zinc-900">${userName}</b>.`,
+                        icon: 'question',
+                        iconColor: '#2563eb',
+                        showCancelButton: true,
+                        confirmButtonText: 'Confirm Authorization',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fluxSwal.fire({
+                                title: 'Processing...',
+                                showConfirmButton: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                            form.submit();
+                        }
+                    });
+                });
+            });
 
-                Swal.fire({
-                    title: 'Grant System Access?',
-                    html: `<div class="flux-content text-slate-600 text-sm">You are granting full system privileges to <b>${userName}</b>. This action will be logged.</div>`,
-                    icon: 'warning',
-                    iconColor: '#4f46e5',
-                    showCancelButton: true,
-                    confirmButtonText: 'Authorize Now',
-                    cancelButtonText: 'Abort',
-                    reverseButtons: true,
-                    buttonsStyling: false,
-                    customClass: {
-                        popup: 'flux-popup',
-                        title: 'flux-title',
-                        confirmButton: 'flux-confirm-btn',
-                        cancelButton: 'flux-cancel-btn'
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire({
-                            title: 'Authorizing...',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            },
-                            customClass: {
-                                popup: 'flux-popup',
-                                title: 'flux-title'
-                            }
+            document.querySelectorAll('.btn-reject').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const form = this.closest('.reject-form');
+                    const reasonInput = form.querySelector('.reject-reason-input');
+                    const userName = this.getAttribute('data-user');
+                    const {
+                        value: text,
+                        isConfirmed
+                    } = await fluxSwal.fire({
+                        title: 'Reject Request',
+                        html: `Reason for rejecting <b class="text-zinc-900">${userName}</b>.`,
+                        input: 'textarea',
+                        showCancelButton: true,
+                        confirmButtonText: 'Confirm Rejection',
+                        confirmButtonClass: 'bg-rose-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-rose-700 mx-2 mb-6',
+                        inputValidator: (value) => {
+                            if (!value) return 'Reason is required!'
+                        }
+                    });
+                    if (isConfirmed) {
+                        reasonInput.value = text;
+                        fluxSwal.fire({
+                            title: 'Rejecting...',
+                            showConfirmButton: false,
+                            didOpen: () => Swal.showLoading()
                         });
                         form.submit();
                     }
                 });
-            });
-        });
-
-        document.querySelectorAll('.btn-reject').forEach(button => {
-            button.addEventListener('click', async function() {
-                const form = this.closest('.reject-form');
-                const reasonInput = form.querySelector('.reject-reason-input');
-                const userName = this.getAttribute('data-user');
-
-                const {
-                    value: text,
-                    isConfirmed
-                } = await Swal.fire({
-                    title: 'Reject Request?',
-                    html: `<div class="flux-content text-slate-600 text-sm">Please provide a reason for rejecting <b>${userName}</b>'s request.</div>`,
-                    input: 'textarea',
-                    inputPlaceholder: 'Type your reason here...',
-                    inputAttributes: {
-                        'aria-label': 'Type your reason here'
-                    },
-                    showCancelButton: true,
-                    confirmButtonText: 'Confirm Rejection',
-                    cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#e11d48', // rose-600
-                    customClass: {
-                        popup: 'flux-popup',
-                        title: 'flux-title',
-                        confirmButton: 'flux-confirm-btn bg-rose-600',
-                        cancelButton: 'flux-cancel-btn'
-                    },
-                    inputValidator: (value) => {
-                        if (!value) {
-                            return 'You need to write a reason!'
-                        }
-                        if (value.length < 5) {
-                            return 'Reason must be at least 5 characters.'
-                        }
-                    }
-                });
-
-                if (isConfirmed) {
-                    reasonInput.value = text;
-                    Swal.fire({
-                        title: 'Processing...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-                    form.submit();
-                }
             });
         });
     </script>

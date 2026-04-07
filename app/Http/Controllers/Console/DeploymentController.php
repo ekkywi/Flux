@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Http\Controllers\Console;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Project;
+use App\Models\Environment;
+use App\Models\Deployment;
+use App\Jobs\RunDeployment;
+use Illuminate\Support\Facades\Auth;
+
+class DeploymentController extends Controller
+{
+    public function store(Request $request, Project $project, Environment $environment)
+    {
+        $isDeploying = $environment->deployments()
+            ->whereIn('status', ['queued', 'running'])
+            ->exists();
+
+        if ($isDeploying) {
+            return response()->json([
+                'status'    => 'error',
+                'message'   => 'A deployment is already in progress for this node.'
+            ], 422);
+        }
+
+        $environment->update(['status' => 'deploying']);
+
+        $deployment = Deployment::create([
+            'environment_id'    => $environment->id,
+            'user_id'           => Auth::id(),
+            'status'            => 'queued',
+        ]);
+
+        RunDeployment::dispatch($deployment);
+
+        return response()->json([
+            'status'            => 'success',
+            'message'           => 'Deployment has been queued successfully.',
+            'deployment_id'     => $deployment->id
+        ]);
+    }
+
+    public function logs(Project $project, Environment $environment)
+    {
+        $deployment = $environment->deployments()->latest()->first();
+
+        if (!$deployment) {
+            return response()->json(['status' => 'none', 'logs' => []]);
+        }
+
+        $logs = $deployment->logs()->orderBy('id', 'asc')->pluck('output');
+
+        return response()->json([
+            'status'    => $deployment->status,
+            'logs'      => $logs
+        ]);
+    }
+}

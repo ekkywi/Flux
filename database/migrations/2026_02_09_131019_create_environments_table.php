@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('environments', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('project_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('server_id')->nullable()->constrained('servers')->onDelete('set null');
+            $table->foreignUuid('db_server_id')->nullable()->constrained('servers')->nullOnDelete();
+            $table->integer('port')->nullable();
+            $table->integer('db_port')->nullable();
+            $table->string('name');
+            $table->string('branch')->default('main');
+            $table->text('deploy_script')->nullable();
+            $table->string('status')->default('uninitialized');
+            $table->string('url')->nullable();
+            $table->enum('type', ['production', 'staging', 'development'])->default('development');
+            $table->boolean('install_ioncube')->default(false);
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('environments');
+    }
+};

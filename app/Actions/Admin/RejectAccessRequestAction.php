@@ -9,15 +9,14 @@ use App\Services\Core\AuditLogger;
 use App\DTOs\AuditLogData;
 use Illuminate\Support\Facades\DB;
 
-use function Symfony\Component\Translation\t;
-
 class RejectAccessRequestAction
 {
     public function execute(AccessRequest $request, string $reason, $adminId): void
     {
         DB::transaction(function () use ($request, $reason, $adminId) {
-            $targetUserEmail = $request->user->email ?? 'Unknown User';
-            $targetUserName = $request->user->username ?? 'Unkown';
+            $targetUser = $request->user;
+            $targetUserEmail = $targetUser->email ?? 'Unknown User';
+            $targetUserName = $targetUser->username ?? 'Unknown';
 
             $request->update([
                 'status' => 'rejected',
@@ -25,6 +24,11 @@ class RejectAccessRequestAction
                 'processed_at' => now(),
                 'processed_by' => $adminId,
             ]);
+
+            if ($request->request_type === ApprovalType::ACCOUNT_REQUEST && $targetUser) {
+
+                $targetUser->forceDelete();
+            }
 
             AuditLogger::log(new AuditLogData(
                 action: 'ACCESS_REJECTED',
