@@ -40,8 +40,11 @@ class RunDeployment implements ShouldQueue
         $this->deployment->update(['status' => 'running']);
 
         try {
+            $this->deployment->refresh();
             $environment = $this->deployment->environment;
+            $environment->refresh();
             $project = $environment->project;
+            $project->refresh();
             $appServer = $environment->server;
 
             $masterKey = SystemSetting::where('key_name', 'master_ssh_key')->first();
@@ -172,7 +175,8 @@ class RunDeployment implements ShouldQueue
                 "echo '{$b64Dockerfile}' | base64 -d > Dockerfile",
                 "echo '{$b64Compose}' | base64 -d > docker-compose.yml",
                 "echo 'Starting Application Build & Up...'",
-                "docker compose up -d --build 2>&1",
+                "docker compose build --pull --no-cache 2>&1",
+                "docker compose up -d 2>&1",
                 "echo 'Running Laravel Production Setup...'",
                 "sleep 3"
             ];

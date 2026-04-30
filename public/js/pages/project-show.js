@@ -203,7 +203,8 @@ window.openEditProjectModal = async function () {
                     <div id="edit-php-container" style="${config.stack === "laravel" || config.stack === "php" || !config.stack ? "display:block;" : "display:none;"}">
                         <label class="text-[10px] font-bold text-zinc-400 uppercase">PHP Version</label>
                         <select id="edit-php-version" class="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-bold">
-                            <option value="8.4" ${config.php_version === "8.4" ? "selected" : ""}>PHP 8.4 (Latest)</option>
+                            <option value="8.5" ${config.php_version === "8.5" ? "selected" : ""}>PHP 8.5 (Latest)</option>
+                            <option value="8.4" ${config.php_version === "8.4" ? "selected" : ""}>PHP 8.4</option>
                             <option value="8.3" ${config.php_version === "8.3" ? "selected" : ""}>PHP 8.3</option>
                             <option value="8.2" ${config.php_version === "8.2" ? "selected" : ""}>PHP 8.2</option>
                             <option value="8.1" ${config.php_version === "8.1" ? "selected" : ""}>PHP 8.1</option>
@@ -243,9 +244,10 @@ window.openEditProjectModal = async function () {
         branch,
         status,
         description,
-        stack, // 🔥 Kirim ke Laravel
+        stack,
         php_version:
-          stack === "laravel" || stack === "php" ? php_version : null, // Kirim PHP version jika stack sesuai
+          stack === "laravel" || stack === "php" ? php_version : null,
+        database_type: config.database_type,
       };
     },
   });
@@ -500,13 +502,11 @@ window.openAddEnvModal = async function () {
         const n = document.getElementById("new-env-name").value;
         const s = document.getElementById("new-env-server").value;
 
-        // 🔥 Tangkap nilai checkbox ionCube
         const ioncubeCheckbox = document.getElementById("install_ioncube");
         const installIoncube = ioncubeCheckbox
           ? ioncubeCheckbox.checked
           : false;
 
-        // Cek target DB secara aman
         const dbSelect = document.getElementById("new-env-db-server");
         const db_s = dbSelect ? dbSelect.value : null;
 
@@ -522,12 +522,11 @@ window.openAddEnvModal = async function () {
           db_server_id: db_s,
           type: document.querySelector('input[name="env_type"]:checked').value,
           branch: document.getElementById("new-env-branch").value,
-          install_ioncube: installIoncube ? 1 : 0, // 🔥 Kirim data ini ke Laravel Controller
+          install_ioncube: installIoncube ? 1 : 0,
         };
       },
     });
 
-    // Jika form disubmit dan lolos validasi, kirim ke Backend
     if (value) submitForm(config.routes.envStore, "POST", value);
   } catch (error) {
     console.error(error);

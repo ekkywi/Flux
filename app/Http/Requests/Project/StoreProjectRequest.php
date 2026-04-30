@@ -19,7 +19,7 @@ class StoreProjectRequest extends FormRequest
             'branch'            => ['required', 'string', 'max:255'],
             'description'       => ['nullable', 'string'],
             'stack'             => ['required', 'string', 'in:laravel,nodejs,html'],
-            'php_version'       => ['nullable', 'string', 'in:8.1,8.2,8.3,8.4'],
+            'php_version'       => ['nullable', 'string', 'in:8.1,8.2,8.3,8.4,8.5'],
             'database_type'     => ['required', 'string', 'in:sqlite,mysql,pgsql'],
         ];
     }

@@ -41,29 +41,20 @@
     </div>
 
     @push("scripts")
-        {{-- 🔥 DATA BRIDGE: Mengirim Data PHP ke JavaScript Eksternal --}}
         <script>
             window.ProjectConfig = {
-                // ✅ WAJIB PAKAI TANDA KUTIP ("...") UNTUK UUID
                 id: "{{ $project->id }}",
                 name: "{{ $project->name }}",
                 repository_url: "{{ $project->repository_url }}",
                 branch: "{{ $project->branch }}",
                 status: "{{ $project->status }}",
-
-                // Escape description agar aman dari enter/kutip dalam teks
                 description: `{{ str_replace(["\r", "\n"], ["", "\\n"], addslashes($project->description)) }}`,
                 stack: "{{ $project->stack ?? "laravel" }}",
                 php_version: "{{ data_get($project->build_options, "php_version", "8.4") }}",
                 database_type: "{{ data_get($project->build_options, "database_type", "sqlite") }}",
-
                 csrfToken: "{{ csrf_token() }}",
-
                 currentUser: {
-                    // ✅ FIX: USER ID JUGA HARUS DIKUTIP (Jaga-jaga jika User ID anda juga UUID)
                     id: "{{ auth()->id() }}",
-
-                    // Logic Role (Pastikan kutipnya rapi)
                     role: "{{ auth()->user()->role === "System Administrator" ? "sysadmin" : $project->members->firstWhere("id", auth()->id())?->pivot->role ?? "member" }}"
                 },
 
