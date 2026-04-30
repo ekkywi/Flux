@@ -13,15 +13,18 @@ class CreateProjectAction
     {
         return DB::transaction(function () use ($data, $creator) {
 
-            $buildOptions = [];
             $stack = strtolower($data['stack']);
+
+            $buildOptions = [
+                'database_type'     => $data['database_type'] ?? 'sqlite',
+                'database_version'  => $data['database_version'] ?? '15-alpine',
+            ];
 
             if ($stack === 'laravel' || $stack === 'php') {
                 $buildOptions['php_version'] = $data['php_version'] ?? '8.4';
             }
 
-            $buildOptions['database_type'] = $data['database_type'] ?? 'sqlite';
-
+            // 3. Simpan ke database
             $project = Project::create([
                 'name'              => $data['name'],
                 'repository_url'    => $data['repository_url'],
