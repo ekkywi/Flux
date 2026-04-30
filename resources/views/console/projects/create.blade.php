@@ -81,7 +81,8 @@
                             <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">PHP Version</label>
                             <div class="relative">
                                 <select class="w-full bg-zinc-50 border @error("php_version") border-red-300 bg-red-50 @else border-zinc-200 @enderror text-zinc-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3.5 font-bold appearance-none transition-colors" id="php_version" name="php_version">
-                                    <option {{ old("php_version", "8.4") == "8.4" ? "selected" : "" }} value="8.4">PHP 8.4 (Latest)</option>
+                                    <option {{ old("php_version", "8.5") == "8.5" ? "selected" : "" }} value="8.5">PHP 8.5 (Latest)</option>
+                                    <option {{ old("php_version") == "8.4" ? "selected" : "" }} value="8.4">PHP 8.3</option>
                                     <option {{ old("php_version") == "8.3" ? "selected" : "" }} value="8.3">PHP 8.3</option>
                                     <option {{ old("php_version") == "8.2" ? "selected" : "" }} value="8.2">PHP 8.2</option>
                                     <option {{ old("php_version") == "8.1" ? "selected" : "" }} value="8.1">PHP 8.1</option>
@@ -97,7 +98,6 @@
                             @enderror
                         </div>
 
-                        {{-- 🔥 PERBAIKAN: DATABASE ENGINE DITAMBAH MARIADB 🔥 --}}
                         <div class="pt-4 border-t border-zinc-100 mt-4">
                             <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Database Engine <span class="text-red-500">*</span></label>
                             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
