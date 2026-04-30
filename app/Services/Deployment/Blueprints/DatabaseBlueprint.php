@@ -34,6 +34,8 @@ class DatabaseBlueprint
     if ($type === 'pgsql' || $type === 'postgresql') {
       $ver = $version ?: '15-alpine';
       $extPort = $port ?: 5432;
+      $isNewPg = preg_match('/^(18|19|20|latest)/', strtolower($ver));
+      $volumeMount = $isNewPg ? '/var/lib/postgresql' : '/var/lib/postgresql/data';
 
       return "services:\n"
         . "  db:\n"
@@ -46,7 +48,7 @@ class DatabaseBlueprint
         . "    ports:\n"
         . "      - \"{$extPort}:5432\"\n"
         . "    volumes:\n"
-        . "      - db_data:/var/lib/postgresql/data\n"
+        . "      - db_data:{$volumeMount}\n"
         . "volumes:\n"
         . "  db_data:\n";
     }
