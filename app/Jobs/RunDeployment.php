@@ -86,7 +86,7 @@ class RunDeployment implements ShouldQueue
                 }
                 $sshDb->setTimeout(0);
 
-                $dbWorkspace = "~/flux-databases/{$project->id}/{$environment->name}";
+                $dbWorkspace = "flux-databases/{$project->id}/{$environment->name}";
                 $dbCompose = DatabaseBlueprint::getCompose($dbType, $dbName, $dbUser, $dbPass, $dbVersion, $dbPort);
                 $b64DbCompose = base64_encode(trim($dbCompose));
 
@@ -95,8 +95,8 @@ class RunDeployment implements ShouldQueue
                     : "docker compose exec -T -e MYSQL_PWD='{$dbPass}_root' db mysqladmin ping -h 127.0.0.1 -u root --silent";
 
                 $dbCommands = [
-                    "mkdir -p {$dbWorkspace}",
-                    "cd {$dbWorkspace}",
+                    "mkdir -p ~/'{$dbWorkspace}'",
+                    "cd ~/'{$dbWorkspace}'",
                     "echo '{$b64DbCompose}' | base64 -d > docker-compose.yml",
                     "if [ ! -s docker-compose.yml ]; then echo 'FATAL: Compose file is completely empty!'; exit 1; fi",
                     "echo 'Starting {$dbType} container on port {$dbPort}...'",
@@ -126,7 +126,7 @@ class RunDeployment implements ShouldQueue
             }
             $sshApp->setTimeout(0);
 
-            $workspace = "~/flux-projects/{$project->id}/{$environment->name}";
+            $workspace = "flux-projects/{$project->id}/{$environment->name}";
             $branch = escapeshellarg($environment->branch);
 
             $rawKey = hash('sha256', $environment->id . $project->id . env('APP_KEY'), true);
@@ -165,8 +165,8 @@ class RunDeployment implements ShouldQueue
             $b64Compose = base64_encode($blueprint->getDockerCompose($buildOptions));
 
             $appCommands = [
-                "mkdir -p {$workspace}",
-                "cd {$workspace}",
+                "mkdir -p ~/'{$workspace}'",
+                "cd ~/'{$workspace}'",
                 "if [ ! -d .git ]; then git clone {$repoUrl} . ; else git remote set-url origin {$repoUrl} && git fetch --all && git reset --hard origin/{$branch}; fi",
                 "git checkout {$branch}",
                 "git pull origin {$branch}",
@@ -246,9 +246,9 @@ class RunDeployment implements ShouldQueue
                         if ($appSrv) {
                             $sshApp = new SSH2($appSrv->ip_address, $appSrv->ssh_port, 10);
                             if ($sshApp->login($appSrv->ssh_user, $privKey)) {
-                                $workspace = "~/flux-projects/{$proj->id}/{$env->name}";
-                                $sshApp->exec("cd {$workspace} && docker compose down -v 2>/dev/null || true");
-                                $sshApp->exec("rm -rf {$workspace}");
+                                $workspace = "flux-projects/{$proj->id}/{$env->name}";
+                                $sshApp->exec("cd ~/'{$workspace}' && docker compose down -v 2>/dev/null || true");
+                                $sshApp->exec("rm -rf ~/'{$workspace}'");
                                 $this->log('[Anti-Stall] App Server cleanup successful. Ports released.');
                                 $sshApp->disconnect();
                             }
@@ -258,9 +258,9 @@ class RunDeployment implements ShouldQueue
                         if ($dbSrv && in_array($dbType, ['mysql', 'pgsql', 'mariadb'])) {
                             $sshDb = new SSH2($dbSrv->ip_address, $dbSrv->ssh_port, 10);
                             if ($sshDb->login($dbSrv->ssh_user, $privKey)) {
-                                $dbWorkspace = "~/flux-databases/{$proj->id}/{$env->name}";
-                                $sshDb->exec("cd {$dbWorkspace} && docker compose down -v 2>/dev/null || true");
-                                $sshDb->exec("rm -rf {$dbWorkspace}");
+                                $dbWorkspace = "flux-databases/{$proj->id}/{$env->name}";
+                                $sshDb->exec("cd ~/'{$dbWorkspace}' && docker compose down -v 2>/dev/null || true");
+                                $sshDb->exec("rm -rf ~/'{$dbWorkspace}'");
                                 $this->log('[Anti-Stall] DB Server cleanup successful. Ports released.');
                                 $sshDb->disconnect();
                             }

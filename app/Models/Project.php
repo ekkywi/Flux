@@ -67,4 +67,32 @@ class Project extends Model
         $path = parse_url($this->repository_url, PHP_URL_PATH);
         return trim($path, '/');
     }
+
+    public function getTotalNodesAttribute()
+    {
+        return $this->environments->count();
+    }
+
+    public function getActiveNodesAttribute()
+    {
+        return $this->environments->where('status', 'running')->count();
+    }
+
+    public function getHealthPercentAttribute()
+    {
+        $total = $this->total_nodes;
+        $active = $this->active_nodes;
+
+        return $total > 0 ? round(($active / $total) * 100) : 0;
+    }
+
+    public function getHealtColorAttribute()
+    {
+        $percent = $this->health_percent;
+
+        if ($percent >= 90) return 'text-emerald-400';
+        if ($percent >= 50) return 'text-yellow-400';
+
+        return 'text-red-400';
+    }
 }

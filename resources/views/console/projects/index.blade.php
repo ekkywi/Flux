@@ -13,14 +13,6 @@
 @endsection
 
 @section("content")
-    {{-- 
-        X-DATA LOGIC:
-        1. viewMode: Grid/List switch.
-        2. search: String pencarian.
-        3. filterStatus: Status yang dipilih (active/maintenance).
-        4. showFilter: Toggle dropdown filter.
-        5. showSort: Toggle dropdown sort.
-    --}}
     <div x-data="{
         viewMode: localStorage.getItem('project_view_mode') || 'grid',
         search: '',
@@ -69,14 +61,12 @@
                         <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                         </svg>
-                        {{-- Teks hanya muncul di layar SM ke atas --}}
                         <span class="hidden sm:inline" x-text="filterStatus === 'all' ? 'Status' : filterStatus"></span>
                         <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                         </svg>
                     </button>
 
-                    {{-- Dropdown Menu (Z-INDEX 50 PENTING) --}}
                     <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-zinc-100 z-50 overflow-hidden py-1 ring-1 ring-black/5" x-cloak x-show="showFilter" x-transition.origin.top.right>
                         <div class="px-3 py-2 border-b border-zinc-50 bg-zinc-50/50">
                             <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400">Filter By Status</span>

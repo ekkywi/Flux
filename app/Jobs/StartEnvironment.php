@@ -38,7 +38,7 @@ class StartEnvironment implements ShouldQueue
                 $sshDb = new SSH2($dbServer->ip_address, $dbServer->ssh_port, 10);
                 if ($sshDb->login($dbServer->ssh_user, $privateKey)) {
                     $dbWorkspace = "~/flux-databases/{$project->id}/{$this->environment->name}";
-                    $sshDb->exec("cd {$dbWorkspace} && docker compose start");
+                    $sshDb->exec("cd '{$dbWorkspace}' && docker compose start");
                     $sshDb->disconnect();
                 }
             }
@@ -47,11 +47,14 @@ class StartEnvironment implements ShouldQueue
             if (!$sshApp->login($appServer->ssh_user, $privateKey)) {
                 throw new \Exception("SSH Login failed to App Server.");
             }
+
             $workspace = "~/flux-projects/{$project->id}/{$this->environment->name}";
-            $outputApp = $sshApp->exec("cd {$workspace} && docker compose start 2>&1");
+
+            $outputApp = $sshApp->exec("cd '{$workspace}' && docker compose start 2>&1");
             Log::info("[START APP SERVER] " . trim($outputApp));
-            $sshApp->exec("cd {$workspace} && docker compose start");
+
             $status = ($sshApp->getExitStatus() === 0) ? 'running' : 'failed';
+
             $this->environment->update(['status' => $status]);
             $sshApp->disconnect();
         } catch (Throwable $e) {

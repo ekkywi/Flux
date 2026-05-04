@@ -62,9 +62,7 @@
                             <div class="relative">
                                 <select class="w-full bg-zinc-50 border @error("stack") border-red-300 bg-red-50 @else border-zinc-200 @enderror text-zinc-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3.5 font-bold appearance-none transition-colors" id="stack" name="stack" onchange="togglePhpVersion()" required>
                                     <option disabled selected value="">-- Select Stack --</option>
-                                    <option {{ old("stack") == "laravel" ? "selected" : "" }} value="laravel">Laravel / PHP</option>
-                                    <option {{ old("stack") == "nodejs" ? "selected" : "" }} value="nodejs">Node.js</option>
-                                    <option {{ old("stack") == "html" ? "selected" : "" }} value="html">Static HTML</option>
+                                    <option {{ old("stack") == "laravel" ? "selected" : "" }} value="laravel">PHP - Laravel</option>
                                 </select>
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none">
                                     <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,7 +156,6 @@
                             @enderror
                         </div>
 
-                        {{-- 🔥 FITUR BARU: DROPDOWN DATABASE VERSION 🔥 --}}
                         <div id="db_version_container" style="display: none;">
                             <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 mt-4">Database Version</label>
                             <div class="relative">
@@ -300,7 +297,6 @@
     </div>
 
     <script>
-        // 🔥 FITUR BARU: Konfigurasi Versi Database Dinamis 🔥
         const dbVersions = {
             mysql: [{
                     value: 'latest',
@@ -391,18 +387,16 @@
 
             if (dbType === 'sqlite') {
                 container.style.display = 'none';
-                select.innerHTML = ''; // Kosongkan
+                select.innerHTML = '';
             } else {
                 container.style.display = 'block';
                 select.innerHTML = '';
 
-                // Isi dropdown sesuai engine yang dipilih
                 dbVersions[dbType].forEach(v => {
                     const opt = document.createElement('option');
                     opt.value = v.value;
                     opt.text = v.label;
 
-                    // Pertahankan state lama jika form error
                     if (v.value === oldDbVersion) {
                         opt.selected = true;
                     }
@@ -481,7 +475,6 @@
                     });
                 }
 
-                // UI Success
                 spinner.classList.add('hidden');
                 icon.classList.remove('hidden');
                 icon.innerHTML = '<svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
@@ -500,7 +493,6 @@
                 if (data.branches.length > 0) updatePreview('preview-branch', select.value);
 
             } catch (e) {
-                // UI Error
                 spinner.classList.add('hidden');
                 icon.classList.remove('hidden');
                 icon.innerHTML = '<svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -522,7 +514,7 @@
             if (oldRepo) updatePreview('preview-repo', oldRepo);
 
             togglePhpVersion();
-            toggleDbVersion(); // 🔥 Panggil saat awal loading agar versi sesuai dengan yg dipilih
+            toggleDbVersion();
         }
     </script>
 @endsection
