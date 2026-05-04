@@ -37,8 +37,8 @@ class StartEnvironment implements ShouldQueue
             if (in_array($dbType, ['mysql', 'pgsql', 'mariadb']) && $dbServer) {
                 $sshDb = new SSH2($dbServer->ip_address, $dbServer->ssh_port, 10);
                 if ($sshDb->login($dbServer->ssh_user, $privateKey)) {
-                    $dbWorkspace = "~/flux-databases/{$project->id}/{$this->environment->name}";
-                    $sshDb->exec("cd '{$dbWorkspace}' && docker compose start");
+                    $dbWorkspace = "flux-databases/{$project->id}/{$this->environment->name}";
+                    $sshDb->exec("cd ~/'{$dbWorkspace}' && docker compose start");
                     $sshDb->disconnect();
                 }
             }
@@ -48,9 +48,9 @@ class StartEnvironment implements ShouldQueue
                 throw new \Exception("SSH Login failed to App Server.");
             }
 
-            $workspace = "~/flux-projects/{$project->id}/{$this->environment->name}";
+            $workspace = "flux-projects/{$project->id}/{$this->environment->name}";
 
-            $outputApp = $sshApp->exec("cd '{$workspace}' && docker compose start 2>&1");
+            $outputApp = $sshApp->exec("cd ~/'{$workspace}' && docker compose start 2>&1");
             Log::info("[START APP SERVER] " . trim($outputApp));
 
             $status = ($sshApp->getExitStatus() === 0) ? 'running' : 'failed';

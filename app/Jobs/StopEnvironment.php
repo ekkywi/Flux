@@ -32,19 +32,20 @@ class StopEnvironment implements ShouldQueue
             $sshApp = new SSH2($appServer->ip_address, $appServer->ssh_port, 10);
             if ($sshApp->login($appServer->ssh_user, $privateKey)) {
                 $sshApp->setTimeout(0);
-                $workspace = "~/flux-projects/{$project->id}/{$this->environment->name}";
-                $sshApp->exec("cd {$workspace} && docker compose stop 2>&1");
+                $workspace = "flux-projects/{$project->id}/{$this->environment->name}";
+                $sshApp->exec("cd ~/'{$workspace}' && docker compose stop 2>&1");
                 $sshApp->disconnect();
             }
 
             $dbServer = $this->environment->dbServer;
             $dbType = strtolower(trim($project->build_options['database_type'] ?? 'sqlite'));
-            if ($dbServer && in_array($dbType, ['mysql', 'pgsql'])) {
+
+            if ($dbServer && in_array($dbType, ['mysql', 'pgsql', 'mariadb'])) {
                 $sshDb = new SSH2($dbServer->ip_address, $dbServer->ssh_port, 10);
                 if ($sshDb->login($dbServer->ssh_user, $privateKey)) {
                     $sshDb->setTimeout(0);
-                    $dbWorkspace = "~/flux-databases/{$project->id}/{$this->environment->name}";
-                    $sshDb->exec("cd {$dbWorkspace} && docker compose stop 2>&1");
+                    $dbWorkspace = "flux-databases/{$project->id}/{$this->environment->name}";
+                    $sshDb->exec("cd ~/'{$dbWorkspace}' && docker compose stop 2>&1");
                     $sshDb->disconnect();
                 }
             }
