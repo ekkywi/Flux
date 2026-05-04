@@ -29,14 +29,15 @@ class DashboardController extends Controller
 
         if ($pendingCount > 0) {
             $statusText = 'Deploying';
-            $statusColor = 'from-yellow-500 to-orage-500 shadow-yellow-500/20';
+            $statusColor = 'from-yellow-500 to-orange-500 shadow-yellow-500/20';
             $iconAnimation = 'animate-pulse';
         } else if ($systemIntegrity < 100 && $totalNodes > 0) {
             $statusText = 'Degraded';
-            $statusColor = 'from-red-500 to-ross-500 shadow-red-500/20';
+            $statusColor = 'from-red-500 to-rose-500 shadow-red-500/20';
+            $iconAnimation = 'animate-pulse';
         } else {
-            $statusText = 'Optiomal';
-            $statusColor = 'from-blue=500 to-cyan-500 shadow-blue-500/2';
+            $statusText = 'Optimal';
+            $statusColor = 'from-blue-500 to-cyan-500 shadow-blue-500/20';
             $iconAnimation = '';
         }
 
