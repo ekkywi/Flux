@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignUuid('environment_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('user_id')->constrained('users')->nullOnDelete();
             $table->string('commit_hash')->nullable();
-            $table->string('commit_messsage')->nullable();
+            $table->string('commit_message')->nullable();
             $table->string('status')->default('queued');
             $table->integer('duration_seconds')->nullable();
             $table->text('error_message')->nullable();

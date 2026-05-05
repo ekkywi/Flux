@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Environment;
 use App\Models\Deployment;
+use App\Models\User;
 use App\Jobs\RunDeployment;
 use Illuminate\Support\Facades\Log;
 
@@ -19,7 +20,7 @@ class WebhookController extends Controller
 
         $payload = $request->all();
         $cloneUrl = $payload['repository']['clone_url'] ?? null;
-        $htmlUrl = $payload['reposiotry']['html_url'] ?? null;
+        $htmlUrl = $payload['repository']['html_url'] ?? null;
         $ref = $payload['ref'] ?? '';
         $branch = str_replace('refs/heads/', '', $ref);
         $latestCommit = $payload['after'] ?? null;
@@ -47,7 +48,7 @@ class WebhookController extends Controller
 
                 $deployment = $env->deployments()->create([
                     'status' => 'queued',
-                    'user_id' => $env->project->user_id ?? 1,
+                    'user_id' => $env->project->user_id ?? User::first()->id,
                 ]);
 
                 RunDeployment::dispatch($deployment);
