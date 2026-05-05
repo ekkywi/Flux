@@ -47,6 +47,7 @@ class WebhookController extends Controller
 
                 $deployment = $env->deployments()->create([
                     'status' => 'queued',
+                    'user_id' => $env->project->user_id ?? 1,
                 ]);
 
                 RunDeployment::dispatch($deployment);
