@@ -9,6 +9,7 @@ use App\Models\Environment;
 use App\Models\SystemSetting;
 use App\Jobs\StopEnvironment;
 use App\Jobs\StartEnvironment;
+use App\Jobs\RunDeployment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use phpseclib3\Net\SSH2;
@@ -195,5 +196,26 @@ class EnvironmentController extends Controller
                 'output' => 'Critical Error: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function toggleAutoDeploy(Environment $environment)
+    {
+        $environment->update([
+            'auto_deploy' => !$environment->auto_deploy
+        ]);
+
+        $status = $environment->auto_deploy ? 'enabled' : 'disabled';
+        return back()->with('success', "Auto-Deploy is now {$status} for {$environment->name}");
+    }
+
+    public function deployUpdate(Environment $environment)
+    {
+        $deployment = $environment->deployments()->create([
+            'status' => 'queued'
+        ]);
+
+        RunDeployment::dispatch($deployment);
+
+        return back()->with('success', "Deployment for the latest update has been queued!");
     }
 }

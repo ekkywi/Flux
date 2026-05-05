@@ -215,7 +215,10 @@ class RunDeployment implements ShouldQueue
             ]);
 
             if ($status === 'completed') {
-                $environment->update(['status' => 'running']);
+                $environment->update([
+                    'status' => 'running',
+                    'deployed_commit_hash' => $environment->latest_
+                ]);
             } else {
                 $environment->update(['status' => 'failed']);
             }

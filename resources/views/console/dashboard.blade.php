@@ -54,6 +54,37 @@
         </div>
     </div>
 
+    @if ($updatesAvailable->isNotEmpty())
+        <div class="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 p-1 shadow-lg shadow-indigo-500/20">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+            <div class="relative bg-white/10 backdrop-blur-md rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="h-10 w-10 rounded-full bg-white text-indigo-600 flex items-center justify-center font-bold shadow-inner">
+                        <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold text-sm tracking-wide">✨ New Updates Available</h3>
+                        <p class="text-indigo-100 text-xs font-medium mt-0.5">
+                            You have {{ $updatesAvailable->count() }} environment(s) with new commits ready to be deployed.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    @foreach ($updatesAvailable->take(2) as $envUpdate)
+                        <span class="px-3 py-1 bg-black/20 rounded-lg text-[10px] text-white font-bold tracking-wider uppercase border border-white/10">
+                            {{ $envUpdate->project->name }} / {{ $envUpdate->name }}
+                        </span>
+                    @endforeach
+                    @if ($updatesAvailable->count() > 2)
+                        <span class="px-2 py-1 bg-black/20 rounded-lg text-[10px] text-white font-bold border border-white/10">+{{ $updatesAvailable->count() - 2 }} more</span>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- B. STATS GRID --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {{-- Card 1: Total Projects --}}

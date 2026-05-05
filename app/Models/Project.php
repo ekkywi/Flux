@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\Environment;
 
 class Project extends Model
@@ -94,5 +95,12 @@ class Project extends Model
         if ($percent >= 50) return 'text-yellow-400';
 
         return 'text-red-400';
+    }
+
+    public function isLocked(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => in_array($this->status, ['maintenance', 'archived']),
+        );
     }
 }

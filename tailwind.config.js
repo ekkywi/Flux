@@ -3,7 +3,13 @@ cat << EOF > tailwind.config.js;
 export default {
   content: ["./resources/**/*.blade.php", "./resources/**/*.js"],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
+      },
+    },
   },
   plugins: [],
 };

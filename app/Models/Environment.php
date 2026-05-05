@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Environment extends Model
 {
@@ -21,9 +22,17 @@ class Environment extends Model
         'branch',
         'deploy_script',
         'status',
+        'auto_deploy',
+        'deployed_commit_hash',
+        'latest_commit_hash',
         'url',
         'type',
         'install_ioncube'
+    ];
+
+    protected $cast = [
+        'install_ioncube' => 'boolean',
+        'auto_deply' => 'boolean',
     ];
 
     public function project(): BelongsTo
@@ -49,5 +58,19 @@ class Environment extends Model
     public function dbServer()
     {
         return $this->belongsTo(Server::class, 'db_server_id');
+    }
+
+    public function hasUpdate(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->latest_commit_hash && $this->latest_commit_hash !== $this->deployed_commit_hash,
+        );
+    }
+
+    public function isProd(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->type === 'production',
+        );
     }
 }

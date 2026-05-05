@@ -41,6 +41,13 @@ class DashboardController extends Controller
             $iconAnimation = '';
         }
 
+        $updatesAvailable = Environment::with('project')
+            ->whereNotNull('latest_commit_hash')
+            ->where(function ($query) {
+                $query->whereNull('deployed_commit_hash')
+                    ->orWhereColumn('latest_commit_hash', '!=', 'deployed_commit_hash');
+            })->get();
+
         return view('console.dashboard', compact(
             'totalProjects',
             'totalNodes',
@@ -52,7 +59,8 @@ class DashboardController extends Controller
             'integrityColor',
             'statusText',
             'statusColor',
-            'iconAnimation'
+            'iconAnimation',
+            'updatesAvailable',
         ));
     }
 }

@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('branch')->default('main');
             $table->text('deploy_script')->nullable();
             $table->string('status')->default('uninitialized');
+            $table->boolean('auto_deploy')->default('false');
+            $table->string('deployed_commit_hash')->nullable();
+            $table->string('latest_commit_hash')->nullable();
             $table->string('url')->nullable();
             $table->enum('type', ['production', 'staging', 'development'])->default('development');
             $table->boolean('install_ioncube')->default(false);

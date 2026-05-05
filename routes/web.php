@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Console\DashboardController;
 use App\Http\Controllers\Console\ProjectController;
 use App\Http\Controllers\Console\DeploymentController;
+use App\Http\Controllers\Admin\EnvironmentController;
 
 // --- ADMIN CONTROLLERS (SysAdmin Area) ---
 use App\Http\Controllers\Admin\UserApprovalController;
@@ -16,7 +17,6 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\Admin\ServerManagementController;
 use App\Http\Controllers\Admin\ColdStorageController;
-use App\Http\Controllers\Admin\EnvironmentController;
 use App\Http\Controllers\Admin\ProjectMemberController;
 
 // --- SECURITY CONTROLLERS ---
@@ -80,6 +80,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/{environment}/deploy', [DeploymentController::class, 'store'])->name('deploy');
             Route::get('/{environment}/logs', [DeploymentController::class, 'logs'])->name('logs');
         });
+
+        Route::post('/environments/{environment}/toggle-auto-deploy', [EnvironmentController::class, 'toggleAutoDeploy'])->name('environments.toggle-auto-deploy');
+        Route::post('/environments/{environment}/deploy-update', [EnvironmentController::class, 'deployUpdate'])->name('environments.deploy-update');
     });
 
     // ====================================================
