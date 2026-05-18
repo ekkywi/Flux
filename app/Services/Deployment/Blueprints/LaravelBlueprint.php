@@ -28,8 +28,11 @@ SCRIPT;
     return <<<EOF
 FROM php:{$phpVersion}-cli
 
-RUN apt-get update && apt-get install -y zip unzip git libpq-dev sqlite3 \
-    && docker-php-ext-install pdo pdo_pgsql pdo_mysql
+RUN apt-get update && apt-get install -y \
+    zip unzip git libpq-dev sqlite3 \
+    libpng-dev libjpeg-dev libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_pgsql pdo_mysql gd
 {$ioncubeScript}
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
